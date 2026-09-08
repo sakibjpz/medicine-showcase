@@ -14,6 +14,10 @@ class ProductController extends Controller
         return view('products.show', [
             'product' => $product,
             'title' => $product->seo_title,
+            'breadcrumbs' => [
+                ['label' => 'Products', 'url' => route('products')],
+                ['label' => $product->brand_name],
+            ],
         ]);
     }
 }

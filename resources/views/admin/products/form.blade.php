@@ -1,6 +1,5 @@
 @php
 $statuses = ['Draft', 'Under Review', 'Approved', 'Published', 'Archived'];
-$categories = ['Oncology', 'Hepatology', 'Diabetes', 'Cardiovascular', 'Respiratory', 'Other'];
 $dosageForms = ['Tablet', 'Capsule', 'Injection', 'Oral liquid', 'Cream/ointment', 'Other'];
 $routes = ['Oral', 'Injection', 'Topical', 'Inhalation', 'Other'];
 $legalStatuses = ['Prescription only', 'Non-prescription', 'Hospital only', 'Country dependent', 'Unknown'];
@@ -167,7 +166,7 @@ function oldOr($product, $path, $default = '') {
             <div>
                 <label for="short_description" class="block text-sm font-medium text-slate-700">Short Description <span class="text-red-500">*</span></label>
                 <textarea id="short_description" name="short_description" rows="4" class="mt-1 w-full rounded border-slate-300" required>{{ oldOr($product, 'short_description') }}</textarea>
-                <p class="text-xs text-slate-500 mt-1">Word count: <span id="short_word_count">0</span> / 40–80 words</p>
+                <p class="text-xs text-slate-500 mt-1">Word count: <span id="short_word_count">0</span></p>
             </div>
 
             <div>
@@ -201,6 +200,22 @@ function oldOr($product, $path, $default = '') {
                 <label for="image_alt_text" class="block text-sm font-medium text-slate-700">Image Alt Text <span class="text-red-500">*</span></label>
                 <input type="text" id="image_alt_text" name="image_alt_text" value="{{ oldOr($product, 'image_alt_text') }}"
                        class="mt-1 w-full rounded border-slate-300" required>
+            </div>
+
+            <div>
+                <label for="banner_image_file" class="block text-sm font-medium text-slate-700">Banner Image</label>
+                <input type="file" id="banner_image_file" name="banner_image_file" accept=".jpg,.jpeg,.png,.webp"
+                       class="mt-1 w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-med-50 file:text-med-700">
+                <input type="url" id="banner_image_url" name="banner_image_url" value="{{ oldOr($product, 'banner_image') }}"
+                       class="mt-2 w-full rounded border-slate-300" placeholder="...or paste a banner image URL">
+                @if ($product?->banner_image)
+                    <img src="{{ $product->banner_image }}" alt="" class="mt-3 w-full h-24 object-cover rounded border border-slate-200">
+                    <label class="mt-2 flex items-center gap-2 text-sm text-slate-600">
+                        <input type="checkbox" name="remove_banner_image" value="1" class="rounded border-slate-300">
+                        Remove current banner image
+                    </label>
+                @endif
+                <p class="text-xs text-slate-500 mt-1">Used as the HD banner on the product detail page. 1200x400 recommended.</p>
             </div>
         </div>
     </section>
@@ -323,7 +338,7 @@ function oldOr($product, $path, $default = '') {
             <div>
                 <label for="last_verified_date" class="block text-sm font-medium text-slate-700">Last Verified Date</label>
                 <input type="date" id="last_verified_date" name="last_verified_date"
-                       value="{{ oldOr($product, 'last_verified_date') ? oldOr($product, 'last_verified_date')->format('Y-m-d') : '' }}"
+                       value="{{ ($date = oldOr($product, 'last_verified_date')) ? \Illuminate\Support\Carbon::parse($date)->format('Y-m-d') : '' }}"
                        class="mt-1 w-full rounded border-slate-300">
             </div>
 
@@ -457,18 +472,10 @@ function oldOr($product, $path, $default = '') {
     }
 
     function suggestInternalId() {
-        const map = {
-            'Oncology': 'ONC',
-            'Hepatology': 'HEP',
-            'Diabetes': 'DIA',
-            'Cardiovascular': 'CARD',
-            'Respiratory': 'RESP',
-            'Other': 'OTH'
-        };
         const cat = document.getElementById('therapeutic_category').value;
         const id = document.getElementById('internal_product_id');
         if (cat && !id.dataset.touched) {
-            id.value = (map[cat] || 'GEN') + '-';
+            id.value = (cat.replace(/[^a-z]/gi, '').substring(0, 3).toUpperCase() || 'GEN') + '-';
         }
     }
 

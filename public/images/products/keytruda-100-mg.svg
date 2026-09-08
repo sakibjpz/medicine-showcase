@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4c1d95" />
+      <stop offset="100%" stop-color="#a855f7" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)" />
+  <circle cx="300" cy="80" r="120" fill="rgba(255,255,255,0.08)" />
+  <circle cx="80" cy="320" r="100" fill="rgba(255,255,255,0.06)" />
+  <g transform="translate(0, 40)">
+    <rect x="80" y="90" width="240" height="180" rx="20" fill="white" opacity="0.95" />
+    <rect x="100" y="70" width="200" height="40" rx="10" fill="white" opacity="0.95" />
+    <circle cx="300" cy="110" r="20" fill="rgba(255,255,255,0.3)" />
+  </g>
+  <text x="200" y="160" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" font-weight="bold" fill="#4c1d95">Keytruda</text>
+  <text x="200" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#475569">pembrolizumab</text>
+  <text x="200" y="225" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#64748b">100 mg · Injection</text>
+</svg>

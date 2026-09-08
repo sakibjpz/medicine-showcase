@@ -21,6 +21,7 @@ class AdminController extends Controller
             'messagePending' => ContactMessage::where('responded', false)->count(),
             'recentEnquiries' => Enquiry::latest()->limit(5)->get(),
             'recentMessages' => ContactMessage::latest()->limit(5)->get(),
+            'homePage' => Page::where('slug', 'home')->first(),
         ]);
     }
 
@@ -111,10 +112,14 @@ class AdminController extends Controller
             'content' => 'nullable|string',
             'breadcrumbs' => 'nullable|string',
             'is_published' => 'boolean',
+            'banner_image_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'banner_image_url' => 'nullable|url|max:255',
+            'remove_banner_image' => 'nullable|boolean',
         ]);
 
         $validated['breadcrumbs'] = $this->parseBreadcrumbs($validated['breadcrumbs'] ?? '');
         $validated['slug'] = $this->uniqueSlug($this->slugFromHeading($validated['heading']));
+        $validated['banner_image'] = $this->pageBannerImage($request, null);
 
         Page::create($validated);
 
@@ -138,9 +143,13 @@ class AdminController extends Controller
             'content' => 'nullable|string',
             'breadcrumbs' => 'nullable|string',
             'is_published' => 'boolean',
+            'banner_image_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'banner_image_url' => 'nullable|url|max:255',
+            'remove_banner_image' => 'nullable|boolean',
         ]);
 
         $validated['breadcrumbs'] = $this->parseBreadcrumbs($validated['breadcrumbs'] ?? '');
+        $validated['banner_image'] = $this->pageBannerImage($request, $page);
 
         $page->update($validated);
 
@@ -187,5 +196,24 @@ class AdminController extends Controller
         }
 
         return $slug;
+    }
+
+    private function pageBannerImage(Request $request, ?Page $page): ?string
+    {
+        if ($request->boolean('remove_banner_image')) {
+            return null;
+        }
+
+        if ($request->hasFile('banner_image_file')) {
+            $path = $request->file('banner_image_file')->store('pages/banners', 'public');
+            return asset('storage/' . $path);
+        }
+
+        $url = $request->input('banner_image_url');
+        if (! empty($url)) {
+            return $url;
+        }
+
+        return $page?->banner_image;
     }
 }

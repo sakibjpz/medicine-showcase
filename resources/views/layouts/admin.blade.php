@@ -21,6 +21,7 @@
                 <a href="{{ route('admin.dashboard') }}" class="block px-3 py-2 rounded hover:bg-navy-800 {{ request()->routeIs('admin.dashboard') ? 'bg-med-600 text-white' : 'text-slate-200' }}">Dashboard</a>
                 <a href="{{ route('admin.pages') }}" class="block px-3 py-2 rounded hover:bg-navy-800 {{ request()->routeIs('admin.pages*') ? 'bg-med-600 text-white' : 'text-slate-200' }}">Pages</a>
                 <a href="{{ route('admin.products.index') }}" class="block px-3 py-2 rounded hover:bg-navy-800 {{ request()->routeIs('admin.products*') ? 'bg-med-600 text-white' : 'text-slate-200' }}">Products</a>
+                <a href="{{ route('admin.categories.index') }}" class="block px-3 py-2 rounded hover:bg-navy-800 {{ request()->routeIs('admin.categories*') ? 'bg-med-600 text-white' : 'text-slate-200' }}">Categories</a>
                 <a href="{{ route('admin.enquiries') }}" class="block px-3 py-2 rounded hover:bg-navy-800 {{ request()->routeIs('admin.enquiries*') ? 'bg-med-600 text-white' : 'text-slate-200' }}">Enquiries</a>
                 <a href="{{ route('admin.messages') }}" class="block px-3 py-2 rounded hover:bg-navy-800 {{ request()->routeIs('admin.messages*') ? 'bg-med-600 text-white' : 'text-slate-200' }}">Contact Messages</a>
             </nav>

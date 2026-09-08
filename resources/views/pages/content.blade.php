@@ -5,16 +5,16 @@
 @section('content')
 <section class="bg-med-700 text-white py-16 lg:py-20">
     <div class="container-site">
-        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">{{ $heading }}</h1>
+        <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 break-words">{{ $heading }}</h1>
         @if (!empty($lead))
-            <p class="text-lg md:text-xl text-med-100 max-w-3xl">{{ $lead }}</p>
+            <p class="text-base sm:text-lg md:text-xl text-med-100 max-w-3xl break-words">{{ $lead }}</p>
         @endif
     </div>
 </section>
 
 <section class="container-site py-10 lg:py-14">
     <div class="overflow-x-auto">
-        <div class="prose prose-slate max-w-none lg:max-w-4xl">
+        <div class="prose prose-slate max-w-none lg:max-w-4xl break-words">
             {!! $content !!}
         </div>
     </div>

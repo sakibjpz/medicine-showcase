@@ -1,11 +1,17 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="mb-8">
+<div class="mb-8 flex flex-wrap gap-3">
     <a href="{{ route('admin.pages') }}" class="inline-flex flex-wrap items-center gap-2 px-5 py-3 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-med-500 transition">
         <span class="font-bold text-navy-900">Manage Pages</span>
         <span class="text-sm text-slate-500">Create, edit and delete all public website content</span>
     </a>
+    @if ($homePage)
+        <a href="{{ route('admin.pages.edit', $homePage) }}" class="inline-flex flex-wrap items-center gap-2 px-5 py-3 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-med-500 transition">
+            <span class="font-bold text-navy-900">Edit Home Banner</span>
+            <span class="text-sm text-slate-500">Change the hero image on the home page</span>
+        </a>
+    @endif
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Manufacturer;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -31,7 +32,7 @@ class AdminProductController extends Controller
         return view('admin.products.form', [
             'title' => 'Create Product',
             'product' => null,
-            'internalId' => Product::nextInternalId('Oncology'),
+            'internalId' => Product::nextInternalId($this->categoryNames()[0] ?? 'Other'),
             ...$this->lookupLists(),
         ]);
     }
@@ -48,6 +49,7 @@ class AdminProductController extends Controller
         }
 
         $input['product_images'] = $this->storeImages($request, null);
+        $input['banner_image'] = $this->bannerImage($request, null);
 
         if (! $isDraft && empty($input['product_images'])) {
             return back()->withErrors(['product_images' => 'At least one product image is required.'])->withInput();
@@ -82,6 +84,7 @@ class AdminProductController extends Controller
         }
 
         $input['product_images'] = $this->storeImages($request, $product);
+        $input['banner_image'] = $this->bannerImage($request, $product);
 
         $input = $this->normalizeConditionalFields($input);
 
@@ -267,16 +270,54 @@ class AdminProductController extends Controller
 
     private function storeImages(Request $request, ?Product $product): array
     {
-        $images = $product ? ($product->product_images ?? []) : [];
+        $newImages = [];
 
         if ($request->hasFile('image_files')) {
+            $directory = public_path('images/products');
+            if (! is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
             foreach ($request->file('image_files') as $file) {
-                $path = $file->store('products', 'public');
-                $images[] = asset('storage/' . $path);
+                $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $extension = $file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'jpg';
+                $name = Str::slug($filename) . '-' . time() . '-' . uniqid() . '.' . $extension;
+                $file->move($directory, $name);
+                $newImages[] = asset('images/products/' . $name);
             }
         }
 
-        return array_values(array_unique($images));
+        $existing = $product ? ($product->product_images ?? []) : [];
+        return array_values(array_unique(array_merge($newImages, $existing)));
+    }
+
+    private function bannerImage(Request $request, ?Product $product): ?string
+    {
+        if ($request->boolean('remove_banner_image')) {
+            return null;
+        }
+
+        if ($request->hasFile('banner_image_file')) {
+            $directory = public_path('images/products/banners');
+            if (! is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
+            $file = $request->file('banner_image_file');
+            $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = $file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'jpg';
+            $name = Str::slug($filename) . '-' . time() . '-' . uniqid() . '.' . $extension;
+            $file->move($directory, $name);
+
+            return asset('images/products/banners/' . $name);
+        }
+
+        $url = $request->input('banner_image_url');
+        if (! empty($url)) {
+            return $url;
+        }
+
+        return $product?->banner_image;
     }
 
     private function draftRules(): array
@@ -300,7 +341,7 @@ class AdminProductController extends Controller
             'brand_name' => 'required|string|max:255',
             'generic_inn_name' => 'required|string|max:255',
             'other_name' => 'nullable|string|max:255',
-            'therapeutic_category' => 'required|string|in:Oncology,Hepatology,Diabetes,Cardiovascular,Respiratory,Other',
+            'therapeutic_category' => ['required', 'string', Rule::in($this->categoryNames())],
             'subcategory' => [
                 'required',
                 'string',
@@ -314,16 +355,7 @@ class AdminProductController extends Controller
             'country_of_origin' => 'required|string|max:100',
             'legal_status' => 'required|string|in:Prescription only,Non-prescription,Hospital only,Country dependent,Unknown',
             'active_ingredients' => 'required|string',
-            'short_description' => [
-                'required',
-                'string',
-                function ($attribute, $value, $fail) {
-                    $words = str_word_count(strip_tags($value));
-                    if ($words < 40 || $words > 80) {
-                        $fail("The {$attribute} must be 40–80 words (currently {$words}).");
-                    }
-                },
-            ],
+            'short_description' => 'required|string',
             'full_description' => 'required|string',
             'approved_indication' => 'required|string',
             'image_alt_text' => 'required|string|max:255',
@@ -349,6 +381,9 @@ class AdminProductController extends Controller
             'information_disclaimer' => 'required|string',
             'image_files' => $imageRequired . '|array',
             'image_files.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
+            'banner_image_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'banner_image_url' => 'nullable|url|max:255',
+            'remove_banner_image' => 'nullable|boolean',
         ];
     }
 
@@ -356,7 +391,7 @@ class AdminProductController extends Controller
     {
         return [
             'manufacturers' => Manufacturer::orderBy('name')->get(),
-            'categories' => ['Oncology', 'Hepatology', 'Diabetes', 'Cardiovascular', 'Respiratory', 'Other'],
+            'categories' => $this->categoryNames(),
             'subcategoryMap' => $this->subcategoryMap(),
             'dosageForms' => ['Tablet', 'Capsule', 'Injection', 'Oral liquid', 'Cream/ointment', 'Other'],
             'routes' => ['Oral', 'Injection', 'Topical', 'Inhalation', 'Other'],
@@ -367,15 +402,16 @@ class AdminProductController extends Controller
         ];
     }
 
+    private function categoryNames(): array
+    {
+        return Category::orderBy('sort_order')->orderBy('name')->pluck('name')->all();
+    }
+
     private function subcategoryMap(): array
     {
-        return [
-            'Oncology' => ['Solid tumours', 'Haematology', 'Breast cancer', 'Lung cancer', 'Supportive care', 'Other'],
-            'Hepatology' => ['Hepatitis B', 'Hepatitis C', 'Liver disease', 'Cirrhosis', 'Other'],
-            'Diabetes' => ['Type 2 diabetes', 'Type 1 diabetes', 'Insulin', 'Diabetic complications', 'Other'],
-            'Cardiovascular' => ['Hypertension', 'Heart failure', 'Anticoagulation', 'Dyslipidaemia', 'Other'],
-            'Respiratory' => ['Asthma', 'COPD', 'Allergy', 'Cystic fibrosis', 'Other'],
-            'Other' => ['Other'],
-        ];
+        return Category::orderBy('sort_order')->orderBy('name')
+            ->get(['name', 'subcategories'])
+            ->mapWithKeys(fn (Category $c) => [$c->name => $c->subcategories ?? ['Other']])
+            ->all();
     }
 }

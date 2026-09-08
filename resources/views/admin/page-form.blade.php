@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<form method="POST" action="{{ $page ? route('admin.pages.update', $page) : route('admin.pages.store') }}" class="bg-white rounded-lg border border-slate-200 shadow-sm p-6 lg:p-8 space-y-6">
+<form method="POST" action="{{ $page ? route('admin.pages.update', $page) : route('admin.pages.store') }}" enctype="multipart/form-data" class="bg-white rounded-lg border border-slate-200 shadow-sm p-6 lg:p-8 space-y-6">
     @csrf
     @if ($page)
         @method('PATCH')
@@ -42,6 +42,24 @@
         <label for="lead" class="block text-sm font-medium text-slate-700">Lead / Subtitle</label>
         <input type="text" id="lead" name="lead" value="{{ old('lead', $page?->lead) }}"
                class="mt-1 w-full rounded border-slate-300">
+    </div>
+
+    <div class="p-5 bg-med-50/50 border border-med-100 rounded-lg">
+        <h2 class="text-lg font-bold text-med-900 mb-4">Page Banner (Hero Image)</h2>
+        <label for="banner_image_file" class="block text-sm font-medium text-slate-700">Upload a banner image</label>
+        <input type="file" id="banner_image_file" name="banner_image_file" accept=".jpg,.jpeg,.png,.webp"
+               class="mt-1 w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-med-50 file:text-med-700">
+        <label for="banner_image_url" class="block text-sm font-medium text-slate-700 mt-4">…or use an image URL</label>
+        <input type="url" id="banner_image_url" name="banner_image_url" value="{{ old('banner_image_url', $page?->banner_image) }}"
+               class="mt-1 w-full rounded border-slate-300" placeholder="https://example.com/banner.jpg">
+        @if ($page?->banner_image)
+            <img src="{{ $page->banner_image }}" alt="" class="mt-3 w-full h-24 object-cover rounded border border-slate-200">
+            <label class="mt-2 flex items-center gap-2 text-sm text-slate-600">
+                <input type="checkbox" name="remove_banner_image" value="1" class="rounded border-slate-300">
+                Remove current banner image
+            </label>
+        @endif
+        <p class="text-xs text-slate-500 mt-2">Displayed as the page hero background. 1200x400 recommended.</p>
     </div>
 
     <div>

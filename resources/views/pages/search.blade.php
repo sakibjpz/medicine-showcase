@@ -30,14 +30,21 @@
         </div>
     @else
         <h2 class="text-xl font-bold text-med-900 mb-6">{{ count($results) }} result(s)</h2>
-        <div class="space-y-4">
+        <div class="grid grid-cols-1 gap-4">
             @foreach ($results as $result)
-                <a href="{{ $result['url'] }}" class="block p-5 border border-slate-200 rounded-lg hover:border-med-500 hover:shadow transition">
-                    <div class="flex items-center gap-3 mb-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider px-2 py-1 rounded bg-med-100 text-med-700">{{ $result['type'] }}</span>
+                <a href="{{ $result['url'] }}" class="flex gap-4 p-5 bg-white border border-slate-200 rounded-lg hover:border-med-500 hover:shadow transition items-start">
+                    @if (! empty($result['image']))
+                        <img src="{{ $result['image'] }}" alt="{{ $result['title'] }}" class="w-16 h-16 rounded-lg object-cover border border-slate-200 shrink-0">
+                    @else
+                        <div class="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                            <span class="text-xl font-bold">{{ strtoupper(substr($result['title'], 0, 1)) }}</span>
+                        </div>
+                    @endif
+                    <div class="min-w-0 flex-1">
+                        <span class="inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded bg-med-100 text-med-700 mb-2">{{ $result['type'] }}</span>
+                        <h3 class="text-lg font-semibold text-slate-900 break-words">{{ $result['title'] }}</h3>
+                        <p class="text-slate-600 text-sm mt-1 break-words">{{ $result['summary'] }}</p>
                     </div>
-                    <h3 class="text-lg font-semibold text-slate-900">{{ $result['title'] }}</h3>
-                    <p class="text-slate-600 text-sm mt-1">{{ $result['summary'] }}</p>
                 </a>
             @endforeach
         </div>

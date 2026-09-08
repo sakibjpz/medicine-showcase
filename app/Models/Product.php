@@ -29,6 +29,7 @@ class Product extends Model
         'full_description',
         'approved_indication',
         'product_images',
+        'banner_image',
         'image_alt_text',
         'dosage_admin_text',
         'safety_info',
@@ -71,16 +72,8 @@ class Product extends Model
 
     public static function nextInternalId(string $category): string
     {
-        $map = [
-            'Oncology' => 'ONC',
-            'Hepatology' => 'HEP',
-            'Diabetes' => 'DIA',
-            'Cardiovascular' => 'CARD',
-            'Respiratory' => 'RESP',
-            'Other' => 'OTH',
-        ];
-
-        $prefix = $map[$category] ?? 'GEN';
+        $letters = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $category), 0, 3));
+        $prefix = $letters ?: 'GEN';
         $latest = static::where('internal_product_id', 'like', $prefix . '-%')
             ->orderByDesc('internal_product_id')
             ->value('internal_product_id');

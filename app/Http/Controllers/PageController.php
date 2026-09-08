@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\ContactMessage;
 use App\Models\Enquiry;
+use App\Models\Manufacturer;
 use App\Models\Page;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -359,19 +361,100 @@ class PageController extends Controller
             ];
         });
 
-        $curated = collect(self::curatedIndex())->map(function (array $item) use ($q) {
-            $score = 0;
-            if (str_contains(strtolower($item['title']), $q)) $score += 10;
-            if (str_contains(strtolower($item['summary']), $q)) $score += 5;
-            if (str_contains(strtolower($item['type']), $q)) $score += 2;
+        $productResults = Product::with('manufacturer')
+            ->published()
+            ->where(function ($qb) use ($query) {
+                $qb->where('brand_name', 'like', "%{$query}%")
+                   ->orWhere('generic_inn_name', 'like', "%{$query}%")
+                   ->orWhere('other_name', 'like', "%{$query}%")
+                   ->orWhere('therapeutic_category', 'like', "%{$query}%")
+                   ->orWhere('subcategory', 'like', "%{$query}%")
+                   ->orWhere('strength', 'like', "%{$query}%")
+                   ->orWhere('url_slug', 'like', "%{$query}%")
+                   ->orWhere('short_description', 'like', "%{$query}%")
+                   ->orWhereHas('manufacturer', fn ($m) => $m->where('name', 'like', "%{$query}%"));
+            })
+            ->get()
+            ->map(function (Product $product) use ($q) {
+                $score = 0;
+                if (str_contains(strtolower($product->brand_name), $q)) $score += 15;
+                if (str_contains(strtolower($product->generic_inn_name ?? ''), $q)) $score += 10;
+                if (str_contains(strtolower($product->other_name ?? ''), $q)) $score += 7;
+                if (str_contains(strtolower($product->therapeutic_category ?? ''), $q)) $score += 5;
+                if (str_contains(strtolower($product->subcategory ?? ''), $q)) $score += 4;
+                if (str_contains(strtolower($product->manufacturer?->name ?? ''), $q)) $score += 4;
+                if (str_contains(strtolower($product->url_slug), $q)) $score += 3;
+                if (str_contains(strtolower($product->short_description ?? ''), $q)) $score += 2;
+                if (str_contains(strtolower($product->strength ?? ''), $q)) $score += 1;
 
-            return array_merge($item, [
-                'url' => url($item['url']),
-                '_score' => $score,
-            ]);
-        });
+                $image = $product->product_images[0] ?? null;
+                if (empty($image) && file_exists(public_path('images/products/' . $product->url_slug . '.jpg'))) {
+                    $image = asset('images/products/' . $product->url_slug . '.jpg');
+                } elseif (! empty($image) && ! str_starts_with($image, 'http')) {
+                    $image = asset($image);
+                }
+                if (empty($image)) {
+                    $image = asset('images/products/placeholder.svg');
+                }
 
-        $results = $pageResults->merge($curated)
+                return [
+                    'type' => 'Product',
+                    'title' => $product->brand_name . ($product->strength ? ' ' . $product->strength : ''),
+                    'url' => route('products.show', $product->url_slug),
+                    'summary' => ($product->manufacturer?->name ? $product->manufacturer->name . ' · ' : '') . $product->generic_inn_name . ($product->therapeutic_category ? ' · ' . $product->therapeutic_category : ''),
+                    'image' => $image,
+                    '_score' => $score,
+                ];
+            });
+
+        $manufacturerResults = Manufacturer::query()
+            ->where('name', 'like', "%{$query}%")
+            ->orWhere('country', 'like', "%{$query}%")
+            ->orWhere('slug', 'like', "%{$query}%")
+            ->get()
+            ->map(function (Manufacturer $m) use ($q) {
+                $score = 0;
+                if (str_contains(strtolower($m->name), $q)) $score += 12;
+                if (str_contains(strtolower($m->country ?? ''), $q)) $score += 4;
+                if (str_contains(strtolower($m->slug), $q)) $score += 1;
+
+                return [
+                    'type' => 'Manufacturer',
+                    'title' => $m->name,
+                    'url' => route('manufacturers'),
+                    'summary' => $m->country ? $m->country . ' · Manufacturer' : 'Manufacturer',
+                    '_score' => $score,
+                ];
+            });
+
+        $categoryResults = Category::active()
+            ->where(function ($qb) use ($query) {
+                $qb->where('name', 'like', "%{$query}%")
+                   ->orWhere('description', 'like', "%{$query}%")
+                   ->orWhere('slug', 'like', "%{$query}%");
+            })
+            ->get()
+            ->map(function (Category $c) use ($q) {
+                $score = 0;
+                if (str_contains(strtolower($c->name), $q)) $score += 11;
+                if (str_contains(strtolower($c->description ?? ''), $q)) $score += 4;
+                if (str_contains(strtolower($c->slug), $q)) $score += 1;
+                if (! empty($c->subcategories) && collect($c->subcategories)->contains(fn ($s) => str_contains(strtolower($s), $q))) $score += 2;
+
+                return [
+                    'type' => 'Therapeutic Area',
+                    'title' => $c->name,
+                    'url' => route('therapeutic-areas'),
+                    'summary' => $c->description ?: 'Browse ' . $c->name . ' products',
+                    'image' => $c->image,
+                    '_score' => $score,
+                ];
+            });
+
+        $results = $pageResults
+            ->merge($productResults)
+            ->merge($manufacturerResults)
+            ->merge($categoryResults)
             ->filter(fn ($item) => $item['_score'] > 0)
             ->sortByDesc('_score')
             ->values();
@@ -399,12 +482,26 @@ class PageController extends Controller
         $page = Page::where('slug', 'home')->where('is_published', true)->first()
             ?? (object) ['heading' => 'Global pharmaceutical information. Quality-first professional access.', 'lead' => '', 'content' => ''];
 
+        $categories = Category::active()->orderBy('sort_order')->orderBy('name')->get();
+
+        $productsByCategory = Product::with('manufacturer')
+            ->whereIn('content_status', ['Approved', 'Published'])
+            ->orderBy('brand_name')
+            ->get()
+            ->groupBy('therapeutic_category');
+
         return view('pages.home', [
             'title' => 'MedSource – Global Medical Platforms and Centers',
             'breadcrumbs' => [],
             'heading' => $page->heading,
             'lead' => $page->lead ?? '',
             'page' => $page,
+            'categories' => $categories,
+            'productCounts' => Product::selectRaw('therapeutic_category, COUNT(*) as count')
+                ->groupBy('therapeutic_category')
+                ->pluck('count', 'therapeutic_category'),
+            'categoryImages' => $this->categoryImages($categories),
+            'productsByCategory' => $productsByCategory,
         ]);
     }
 
@@ -422,16 +519,59 @@ class PageController extends Controller
         ];
 
         if ($page->slug === 'therapeutic-areas') {
-            $viewData['productsByCategory'] = Product::select('therapeutic_category', 'subcategory')
-                ->selectRaw('COUNT(*) as count')
-                ->groupBy('therapeutic_category', 'subcategory')
-                ->get()
-                ->groupBy('therapeutic_category');
+            $categories = Category::active()->orderBy('sort_order')->orderBy('name')->get();
+
+            $viewData['categories'] = $categories;
+            $viewData['productCounts'] = Product::selectRaw('therapeutic_category, COUNT(*) as count')
+                ->groupBy('therapeutic_category')
+                ->pluck('count', 'therapeutic_category');
+            $viewData['categoryImages'] = $this->categoryImages($categories);
 
             return view('pages.therapeutic-areas', $viewData);
         }
 
+        if ($page->slug === 'products') {
+            $viewData['products'] = Product::published()->orderBy('brand_name')->get();
+
+            return view('pages.products', $viewData);
+        }
+
         return view('pages.content', $viewData);
+    }
+
+    private function categoryImages(iterable $categories): array
+    {
+        $map = [];
+
+        foreach ($categories as $category) {
+            $name = $category->name;
+            $slug = $category->slug ?: Str::slug($name);
+
+            if ($category->image) {
+                $map[$name] = $category->image;
+                continue;
+            }
+
+            $found = false;
+            foreach (['jpg', 'jpeg', 'png', 'webp', 'svg'] as $ext) {
+                if (file_exists(public_path("images/categories/{$slug}.{$ext}"))) {
+                    $map[$name] = asset("images/categories/{$slug}.{$ext}");
+                    $found = true;
+                    break;
+                }
+            }
+            if ($found) {
+                continue;
+            }
+
+            $product = Product::where('therapeutic_category', $name)
+                ->whereNotNull('product_images')
+                ->first(['product_images']);
+
+            $map[$name] = $product->product_images[0] ?? null;
+        }
+
+        return $map;
     }
 
     public function search(Request $request)

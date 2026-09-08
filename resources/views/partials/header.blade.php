@@ -61,6 +61,7 @@
             {{-- Search --}}
             <div class="hidden md:flex flex-1 max-w-2xl relative"
                  x-data="{
+                    activeIndex: -1,
                     query: {{ json_encode(request('q')) }},
                     suggestions: [],
                     open: false,
@@ -75,20 +76,47 @@
                             const res = await fetch('{{ route('search.suggest') }}?q=' + encodeURIComponent(this.query), { signal: this.abortController.signal });
                             this.suggestions = await res.json();
                             this.open = this.suggestions.length > 0;
+                            this.activeIndex = -1;
                         } catch (e) { if (e.name !== 'AbortError') console.error(e); }
                         this.loading = false;
                     },
-                    go(url) { window.location.href = url; }
+                    go(url) { window.location.href = url; },
+                    select() {
+                        if (this.activeIndex >= 0 && this.suggestions[this.activeIndex]) {
+                            this.go(this.suggestions[this.activeIndex].url);
+                        } else {
+                            this.$refs.searchForm.submit();
+                        }
+                    },
+                    next() {
+                        if (! this.suggestions.length) return;
+                        this.open = true;
+                        this.activeIndex = (this.activeIndex + 1) % this.suggestions.length;
+                    },
+                    prev() {
+                        if (! this.suggestions.length) return;
+                        this.open = true;
+                        this.activeIndex = (this.activeIndex - 1 + this.suggestions.length) % this.suggestions.length;
+                    },
+                    highlight(text) {
+                        if (! this.query) return text;
+                        const q = this.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        return text.replace(new RegExp('(' + q + ')', 'ig'), '<mark class="bg-yellow-100 text-inherit rounded px-0.5">$1</mark>');
+                    }
                  }"
                  @keydown.escape.window="open = false">
-                <form action="{{ route('search') }}" method="GET" class="w-full relative" role="search" @submit="open = false">
+                <form action="{{ route('search') }}" method="GET" class="w-full relative" role="search" x-ref="searchForm" @submit="open = false">
                     <label for="global-search" class="sr-only">Search products, pages, manufacturers and more</label>
                     <div class="relative">
                         <input id="global-search" name="q" type="search" x-model="query"
                                @input.debounce.300ms="fetchSuggestions" @focus="if (query.length >= 2) fetchSuggestions()"
                                class="w-full pl-11 pr-4 py-2.5 rounded-full border border-slate-300 bg-slate-50 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-med-500 focus:border-med-500 transition"
                                placeholder="Search products, pages, manufacturers and more"
-                               autocomplete="off">
+                               autocomplete="off"
+                       @keydown.arrow-down.prevent="next"
+                       @keydown.arrow-up.prevent="prev"
+                       @keydown.enter.prevent="select"
+                       @keydown.escape="open = false; activeIndex = -1;">
                         <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -98,12 +126,16 @@
 
                     <div x-show="open" x-transition class="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg border border-slate-200 shadow-lg z-50 overflow-hidden" @click.away="open = false" role="listbox" aria-label="Search suggestions">
                         <ul class="max-h-72 overflow-y-auto divide-y divide-slate-100">
-                            <template x-for="item in suggestions" :key="item.url + item.title">
+                            <template x-for="(item, index) in suggestions" :key="item.url + item.title">
                                 <li>
-                                    <button type="button" @click="go(item.url)" class="w-full text-left px-4 py-3 hover:bg-med-50 focus:bg-med-50 focus:outline-none">
+                                    <button type="button"
+                                            @click="go(item.url)"
+                                            @mouseenter="activeIndex = index"
+                                            x-bind:class="{ 'bg-med-50': activeIndex === index }"
+                                            class="w-full text-left px-4 py-3 hover:bg-med-50 focus:bg-med-50 focus:outline-none">
                                         <span class="text-[10px] font-semibold uppercase tracking-wider text-med-600" x-text="item.type"></span>
-                                        <span class="block text-sm font-semibold text-slate-900" x-text="item.title"></span>
-                                        <span class="block text-xs text-slate-500 truncate" x-text="item.summary"></span>
+                                        <span class="block text-sm font-semibold text-slate-900" x-html="highlight(item.title)"></span>
+                                        <span class="block text-xs text-slate-500 truncate" x-html="highlight(item.summary)"></span>
                                     </button>
                                 </li>
                             </template>
@@ -139,7 +171,8 @@
         {{-- Mobile search --}}
         <div x-show="mobileSearchOpen" class="md:hidden mt-3 relative" style="display: none;"
              x-data="{
-                query: {{ json_encode(request('q')) }},
+                activeIndex: -1,
+                    query: {{ json_encode(request('q')) }},
                 suggestions: [],
                 open: false,
                 loading: false,
@@ -153,28 +186,59 @@
                         const res = await fetch('{{ route('search.suggest') }}?q=' + encodeURIComponent(this.query), { signal: this.abortController.signal });
                         this.suggestions = await res.json();
                         this.open = this.suggestions.length > 0;
+                            this.activeIndex = -1;
                     } catch (e) { if (e.name !== 'AbortError') console.error(e); }
                     this.loading = false;
                 },
-                go(url) { window.location.href = url; }
+                go(url) { window.location.href = url; },
+                    select() {
+                        if (this.activeIndex >= 0 && this.suggestions[this.activeIndex]) {
+                            this.go(this.suggestions[this.activeIndex].url);
+                        } else {
+                            this.$refs.searchForm.submit();
+                        }
+                    },
+                    next() {
+                        if (! this.suggestions.length) return;
+                        this.open = true;
+                        this.activeIndex = (this.activeIndex + 1) % this.suggestions.length;
+                    },
+                    prev() {
+                        if (! this.suggestions.length) return;
+                        this.open = true;
+                        this.activeIndex = (this.activeIndex - 1 + this.suggestions.length) % this.suggestions.length;
+                    },
+                    highlight(text) {
+                        if (! this.query) return text;
+                        const q = this.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        return text.replace(new RegExp('(' + q + ')', 'ig'), '<mark class="bg-yellow-100 text-inherit rounded px-0.5">$1</mark>');
+                    }
              }"
              @keydown.escape.window="open = false">
-            <form action="{{ route('search') }}" method="GET" role="search" class="relative" @submit="open = false">
+            <form action="{{ route('search') }}" method="GET" role="search" class="relative" x-ref="searchForm" @submit="open = false">
                 <label for="mobile-search" class="sr-only">Search products, pages, manufacturers and more</label>
                 <input id="mobile-search" name="q" type="search" x-model="query"
                        @input.debounce.300ms="fetchSuggestions" @focus="if (query.length >= 2) fetchSuggestions()"
                        class="w-full px-4 py-2 rounded-full border border-slate-300 bg-slate-50"
                        placeholder="Search products, pages, manufacturers and more"
-                       autocomplete="off">
+                       autocomplete="off"
+                       @keydown.arrow-down.prevent="next"
+                       @keydown.arrow-up.prevent="prev"
+                       @keydown.enter.prevent="select"
+                       @keydown.escape="open = false; activeIndex = -1;">
 
                 <div x-show="open" x-transition class="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg border border-slate-200 shadow-lg z-50 overflow-hidden" @click.away="open = false" role="listbox" aria-label="Search suggestions">
                     <ul class="max-h-72 overflow-y-auto divide-y divide-slate-100">
-                        <template x-for="item in suggestions" :key="item.url + item.title">
+                        <template x-for="(item, index) in suggestions" :key="item.url + item.title">
                             <li>
-                                <button type="button" @click="go(item.url)" class="w-full text-left px-4 py-3 hover:bg-med-50 focus:bg-med-50 focus:outline-none">
+                                <button type="button"
+                                        @click="go(item.url)"
+                                        @mouseenter="activeIndex = index"
+                                        x-bind:class="{ 'bg-med-50': activeIndex === index }"
+                                        class="w-full text-left px-4 py-3 hover:bg-med-50 focus:bg-med-50 focus:outline-none">
                                     <span class="text-[10px] font-semibold uppercase tracking-wider text-med-600" x-text="item.type"></span>
-                                    <span class="block text-sm font-semibold text-slate-900" x-text="item.title"></span>
-                                    <span class="block text-xs text-slate-500 truncate" x-text="item.summary"></span>
+                                    <span class="block text-sm font-semibold text-slate-900" x-html="highlight(item.title)"></span>
+                                    <span class="block text-xs text-slate-500 truncate" x-html="highlight(item.summary)"></span>
                                 </button>
                             </li>
                         </template>
@@ -186,7 +250,7 @@
     </div>
 
     {{-- Main navigation --}}
-    <nav class="hidden lg:block bg-navy-900 relative" aria-label="Main navigation" @mouseleave="closeMega()">
+    <nav class="hidden md:block bg-navy-900 relative" aria-label="Main navigation" @mouseleave="closeMega()">
         <div class="container-site">
             <div class="flex items-stretch -mx-2">
                 <a href="{{ route('home') }}" class="nav-pill {{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
@@ -212,7 +276,7 @@
                 <a href="{{ route('quality-compliance') }}" class="nav-pill {{ request()->routeIs('quality-compliance') ? 'active' : '' }}">Quality</a>
 
                 <button type="button"
-                        class="nav-pill {{ request()->routeIs('articles-updates', 'faq', 'contact-hub', 'professional-enquiry', 'navigation-overview') ? 'active' : '' }}"
+                        class="nav-pill {{ request()->routeIs('articles-updates', 'faq', 'professional-enquiry', 'navigation-overview') ? 'active' : '' }}"
                         @mouseenter="openMega('resources')"
                         @click="openMega('resources')"
                         :aria-expanded="megaOpen && activeColumn === 'resources'"
@@ -401,7 +465,7 @@
     </nav>
 
     {{-- Therapeutic categories bar --}}
-    <div class="hidden lg:block bg-med-50 border-b border-med-100">
+    <div class="hidden md:block bg-med-50 border-b border-med-100">
         <div class="container-site py-2.5">
             <div class="flex items-center flex-wrap gap-x-6 gap-y-1 text-sm">
                 <span class="font-semibold text-navy-900">Therapeutic categories</span>
@@ -439,7 +503,7 @@
             <a href="{{ route('manufacturers') }}" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium {{ request()->routeIs('manufacturers') ? 'bg-med-600 text-white' : 'bg-navy-900 text-white hover:bg-navy-800' }}">Manufacturers</a>
             <a href="{{ route('how-it-works') }}" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium {{ request()->routeIs('how-it-works') ? 'bg-med-600 text-white' : 'bg-navy-900 text-white hover:bg-navy-800' }}">How It Works</a>
             <a href="{{ route('quality-compliance') }}" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium {{ request()->routeIs('quality-compliance') ? 'bg-med-600 text-white' : 'bg-navy-900 text-white hover:bg-navy-800' }}">Quality</a>
-            <a href="{{ route('resources') }}" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium {{ request()->routeIs('resources', 'articles-updates', 'faq', 'contact-hub', 'professional-enquiry', 'navigation-overview') ? 'bg-med-600 text-white' : 'bg-navy-900 text-white hover:bg-navy-800' }}">Resources</a>
+            <a href="{{ route('resources') }}" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium {{ request()->routeIs('resources', 'articles-updates', 'faq', 'professional-enquiry', 'navigation-overview') ? 'bg-med-600 text-white' : 'bg-navy-900 text-white hover:bg-navy-800' }}">Resources</a>
             <a href="{{ route('about') }}" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium {{ request()->routeIs('about') ? 'bg-med-600 text-white' : 'bg-navy-900 text-white hover:bg-navy-800' }}">About</a>
             <a href="{{ route('contact-hub') }}" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium {{ request()->routeIs('contact-hub') ? 'bg-med-600 text-white' : 'bg-navy-900 text-white hover:bg-navy-800' }}">Contact</a>
 

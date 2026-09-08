@@ -5,11 +5,11 @@
 @section('content')
 <section class="bg-white py-10 lg:py-14 border-b border-slate-200">
     <div class="container-site">
-        <h1 class="text-3xl md:text-4xl font-bold text-navy-900 mb-2">{{ $heading }}</h1>
-        <p class="text-slate-500 mb-8">{{ $lead }}</p>
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-navy-900 mb-2 break-words">{{ $heading }}</h1>
+        <p class="text-base sm:text-lg text-slate-500 mb-8 break-words">{{ $lead }}</p>
         @if ($page->content ?? false)
             <div class="overflow-x-auto mb-8">
-                <div class="prose prose-slate max-w-none">{!! $page->content !!}</div>
+                <div class="prose prose-slate max-w-none break-words">{!! $page->content !!}</div>
             </div>
         @endif
 
@@ -171,7 +171,7 @@
     </div>
 </section>
 
-<section class="bg-med-50 py-10 lg:py-14 pb-24 md:pb-10 lg:pb-14">
+<section class="bg-med-50 py-10 lg:py-14">
     <div class="container-site">
         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Therapeutic categories</p>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
@@ -200,11 +200,11 @@
                 <p class="text-sm text-slate-600">Direct enquiry forms and dedicated support for healthcare professionals.</p>
             </div>
         </div>
+
+        <a href="{{ route('professional-enquiry') }}" class="block w-full sm:w-auto sm:inline-flex text-center btn-primary mt-8">
+            Professional Enquiry
+        </a>
     </div>
 </section>
-
-<a href="{{ route('professional-enquiry') }}" class="fixed bottom-0 left-0 right-0 md:hidden bg-navy-900 text-white text-center py-4 text-sm font-medium hover:bg-navy-800 z-40">
-    Professional Enquiry
-</a>
 
 @endsection

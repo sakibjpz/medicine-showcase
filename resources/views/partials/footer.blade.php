@@ -1,6 +1,7 @@
-<footer class="bg-navy-900 text-slate-200">
+<footer class="bg-navy-900 text-slate-200 border-t border-navy-800">
+
     <div class="container-site py-12 lg:py-16">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
 
             {{-- Brand --}}
             <div class="sm:col-span-2 lg:col-span-1">
@@ -44,6 +45,25 @@
                     <li><a href="{{ route('terms') }}" class="text-slate-300 hover:text-white transition">Terms</a></li>
                     <li><a href="{{ route('accessibility') }}" class="text-slate-300 hover:text-white transition">Accessibility</a></li>
                 </ul>
+            </div>
+
+            {{-- Contact --}}
+            <div class="sm:col-span-2 lg:col-span-1 text-center lg:text-right" aria-label="Contact us">
+                <h3 class="text-white font-semibold mb-4 uppercase text-sm tracking-wider">Contact us</h3>
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <p class="text-slate-400">Service hotline</p>
+                        <a href="tel:+8801717467783" class="text-slate-200 hover:text-white font-medium transition">+880 1717-467783</a>
+                    </div>
+                    <div>
+                        <p class="text-slate-400">Official customer service email</p>
+                        <a href="mailto:ajayingpharma@gmail.com" class="text-slate-200 hover:text-white font-medium transition break-all">ajayingpharma@gmail.com</a>
+                    </div>
+                    <div class="pt-2">
+                        <img src="{{ asset('images/qr-whatsapp.png') }}" alt="Scan this QR code to chat with us on WhatsApp at +880 1717-467783" class="w-20 h-20 rounded border border-white/10 bg-white p-1 inline-block">
+                        <p class="text-xs text-slate-400 mt-2 max-w-40 mx-auto lg:ml-auto">Scan the QR code to add customer service via WhatsApp</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

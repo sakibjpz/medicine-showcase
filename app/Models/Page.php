@@ -10,6 +10,7 @@ class Page extends Model
         'slug',
         'heading',
         'lead',
+        'banner_image',
         'content',
         'breadcrumbs',
         'is_published',
