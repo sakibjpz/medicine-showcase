@@ -51,11 +51,7 @@
         <div class="flex items-center justify-between gap-4 lg:gap-8">
             {{-- Brand --}}
             <a href="{{ route('home') }}" class="flex items-center gap-3 shrink-0" aria-label="MedSource Home">
-                <div class="w-10 h-10 rounded-full bg-med-600 flex items-center justify-center text-white font-bold text-lg">M</div>
-                <div>
-                    <span class="block text-xl font-bold text-navy-900 leading-tight">MedSource</span>
-                    <span class="hidden sm:block text-[11px] text-slate-500 tracking-wide">Global Medical Platforms and Centers</span>
-                </div>
+                <img src="{{ asset('images/logo.png') }}" alt="MedSource" class="max-h-10 w-auto max-w-[140px] sm:max-w-[180px] lg:max-w-[220px]">
             </a>
 
             {{-- Search --}}
@@ -101,7 +97,7 @@
                     highlight(text) {
                         if (! this.query) return text;
                         const q = this.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                        return text.replace(new RegExp('(' + q + ')', 'ig'), '<mark class="bg-yellow-100 text-inherit rounded px-0.5">$1</mark>');
+                        return text.replace(new RegExp('(' + q + ')', 'ig'), '<mark class=\'bg-yellow-100 text-inherit rounded px-0.5\'>$1</mark>');
                     }
                  }"
                  @keydown.escape.window="open = false">
@@ -211,7 +207,7 @@
                     highlight(text) {
                         if (! this.query) return text;
                         const q = this.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                        return text.replace(new RegExp('(' + q + ')', 'ig'), '<mark class="bg-yellow-100 text-inherit rounded px-0.5">$1</mark>');
+                        return text.replace(new RegExp('(' + q + ')', 'ig'), '<mark class=\'bg-yellow-100 text-inherit rounded px-0.5\'>$1</mark>');
                     }
              }"
              @keydown.escape.window="open = false">
@@ -469,14 +465,9 @@
         <div class="container-site py-2.5">
             <div class="flex items-center flex-wrap gap-x-6 gap-y-1 text-sm">
                 <span class="font-semibold text-navy-900">Therapeutic categories</span>
-                <a href="{{ route('therapeutic-areas') }}" class="text-med-700 hover:text-med-900 hover:underline">Oncology</a>
-                <a href="{{ route('therapeutic-areas') }}" class="text-med-700 hover:text-med-900 hover:underline">Hepatology</a>
-                <a href="{{ route('therapeutic-areas') }}" class="text-med-700 hover:text-med-900 hover:underline">Respiratory</a>
-                <a href="{{ route('therapeutic-areas') }}" class="text-med-700 hover:text-med-900 hover:underline">Renal</a>
-                <a href="{{ route('therapeutic-areas') }}" class="text-med-700 hover:text-med-900 hover:underline">Cardiovascular</a>
-                <a href="{{ route('therapeutic-areas') }}" class="text-med-700 hover:text-med-900 hover:underline">Dermatology</a>
-                <a href="{{ route('therapeutic-areas') }}" class="text-med-700 hover:text-med-900 hover:underline">Diabetes</a>
-                <a href="{{ route('therapeutic-areas') }}" class="text-med-700 hover:text-med-900 hover:underline">Other</a>
+                @foreach ($navCategories as $category)
+                    <a href="{{ route('products') }}?category={{ urlencode($category->name) }}" class="text-med-700 hover:text-med-900 hover:underline">{{ $category->name }}</a>
+                @endforeach
             </div>
         </div>
     </div>
@@ -510,14 +501,9 @@
             <div class="pt-4 border-t border-slate-200">
                 <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Therapeutic categories</p>
                 <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('therapeutic-areas') }}" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">Oncology</a>
-                    <a href="{{ route('therapeutic-areas') }}" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">Hepatology</a>
-                    <a href="{{ route('therapeutic-areas') }}" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">Respiratory</a>
-                    <a href="{{ route('therapeutic-areas') }}" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">Renal</a>
-                    <a href="{{ route('therapeutic-areas') }}" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">Cardiovascular</a>
-                    <a href="{{ route('therapeutic-areas') }}" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">Dermatology</a>
-                    <a href="{{ route('therapeutic-areas') }}" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">Diabetes</a>
-                    <a href="{{ route('therapeutic-areas') }}" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">Other</a>
+                    @foreach ($navCategories as $category)
+                        <a href="{{ route('products') }}?category={{ urlencode($category->name) }}" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">{{ $category->name }}</a>
+                    @endforeach
                 </div>
             </div>
 

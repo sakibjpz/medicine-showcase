@@ -451,13 +451,14 @@ class PageController extends Controller
                 ];
             });
 
-        $results = $pageResults
-            ->merge($productResults)
-            ->merge($manufacturerResults)
-            ->merge($categoryResults)
-            ->filter(fn ($item) => $item['_score'] > 0)
-            ->sortByDesc('_score')
-            ->values();
+        $results = collect(array_merge(
+            $pageResults->all(),
+            $productResults->all(),
+            $manufacturerResults->all(),
+            $categoryResults->all()
+        ))->filter(fn ($item) => $item['_score'] > 0)
+          ->sortByDesc('_score')
+          ->values();
 
         if ($limit) {
             $results = $results->take($limit);
@@ -521,17 +522,33 @@ class PageController extends Controller
         if ($page->slug === 'therapeutic-areas') {
             $categories = Category::active()->orderBy('sort_order')->orderBy('name')->get();
 
+            $products = Product::published()->orderBy('brand_name')->get();
+
             $viewData['categories'] = $categories;
             $viewData['productCounts'] = Product::selectRaw('therapeutic_category, COUNT(*) as count')
                 ->groupBy('therapeutic_category')
                 ->pluck('count', 'therapeutic_category');
             $viewData['categoryImages'] = $this->categoryImages($categories);
+            $viewData['productsByCategory'] = $products->groupBy('therapeutic_category');
+            $viewData['productsBySubcategory'] = $products->groupBy(fn (Product $p) => $p->therapeutic_category . '|' . $p->subcategory);
 
             return view('pages.therapeutic-areas', $viewData);
         }
 
         if ($page->slug === 'products') {
-            $viewData['products'] = Product::published()->orderBy('brand_name')->get();
+            $productsQuery = Product::published()->orderBy('brand_name');
+
+            if ($request->filled('category')) {
+                $productsQuery->where('therapeutic_category', $request->input('category'));
+                $viewData['heading'] .= ' – ' . e($request->input('category'));
+            }
+
+            if ($request->filled('subcategory')) {
+                $productsQuery->where('subcategory', $request->input('subcategory'));
+                $viewData['heading'] .= ' – ' . e($request->input('subcategory'));
+            }
+
+            $viewData['products'] = $productsQuery->get();
 
             return view('pages.products', $viewData);
         }

@@ -56,8 +56,35 @@
             </div>
         </aside>
 
-        <div class="lg:col-span-2 space-y-6">
-            <article class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 lg:p-8">
+        <div class="lg:col-span-2" x-data="{ tab: 'product' }">
+            {{-- Horizontal tab bar --}}
+            <div class="bg-white rounded-t-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="flex overflow-x-auto border-b border-slate-200" role="tablist">
+                    <button type="button" role="tab" @click="tab = 'product'"
+                            :class="tab === 'product' ? 'border-med-600 text-med-700' : 'border-transparent text-slate-500 hover:text-med-700 hover:border-slate-300'"
+                            class="px-5 py-3.5 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap transition shrink-0">
+                        Product
+                    </button>
+                    <button type="button" role="tab" @click="tab = 'description'"
+                            :class="tab === 'description' ? 'border-med-600 text-med-700' : 'border-transparent text-slate-500 hover:text-med-700 hover:border-slate-300'"
+                            class="px-5 py-3.5 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap transition shrink-0">
+                        Description
+                    </button>
+                    <button type="button" role="tab" @click="tab = 'safety'"
+                            :class="tab === 'safety' ? 'border-med-600 text-med-700' : 'border-transparent text-slate-500 hover:text-med-700 hover:border-slate-300'"
+                            class="px-5 py-3.5 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap transition shrink-0">
+                        Use &amp; Safety
+                    </button>
+                    <button type="button" role="tab" @click="tab = 'related'"
+                            :class="tab === 'related' ? 'border-med-600 text-med-700' : 'border-transparent text-slate-500 hover:text-med-700 hover:border-slate-300'"
+                            class="px-5 py-3.5 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap transition shrink-0">
+                        Related Information
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-b-xl border border-t-0 border-slate-200 shadow-sm p-6 lg:p-8 space-y-6">
+            <article x-show="tab === 'product'" x-cloak>
                 <h2 class="text-xl font-semibold text-navy-900 border-b border-slate-200 pb-3 mb-4">Basic Product Information</h2>
                 <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                     <div><dt class="font-medium text-slate-500">Brand Name</dt><dd class="text-slate-800 break-words">{{ $product->brand_name }}</dd></div>
@@ -73,7 +100,7 @@
                 </dl>
             </article>
 
-            <article class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 lg:p-8">
+            <article x-show="tab === 'description'" x-cloak>
                 <h2 class="text-xl font-semibold text-navy-900 border-b border-slate-200 pb-3 mb-4">Product Description</h2>
                 <div class="space-y-4 text-sm text-slate-700 break-words">
                     @if ($product->short_description)
@@ -90,7 +117,7 @@
                 </div>
             </article>
 
-            <article class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 lg:p-8">
+            <article x-show="tab === 'safety'" x-cloak>
                 <h2 class="text-xl font-semibold text-navy-900 border-b border-slate-200 pb-3 mb-4">Use and Safety</h2>
                 <div class="space-y-4 text-sm text-slate-700">
                     @if ($product->dosage_admin_text)
@@ -126,8 +153,8 @@
                 </div>
             </article>
 
-            <article class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 lg:p-8">
-                <h2 class="text-xl font-semibold text-navy-900 border-b border-slate-200 pb-3 mb-4">Website and Market Information</h2>
+            <article x-show="tab === 'related'" x-cloak>
+                <h2 class="text-xl font-semibold text-navy-900 border-b border-slate-200 pb-3 mb-4">Related Information</h2>
                 <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                     <div><dt class="font-medium text-slate-500">Availability</dt><dd class="text-slate-800 break-words">{{ $product->availability_status }}</dd></div>
                     <div><dt class="font-medium text-slate-500">Country Market</dt><dd class="text-slate-800 break-words">{{ is_array($product->country_market) ? implode(', ', $product->country_market) : ($product->country_market ?: 'N/A') }}</dd></div>
@@ -141,11 +168,12 @@
             </article>
 
             @if ($product->information_disclaimer)
-                <article class="bg-med-50 border border-med-100 rounded-xl p-6 lg:p-8">
+                <article x-show="tab === 'related'" x-cloak class="bg-med-50 border border-med-100 rounded-xl p-6">
                     <h2 class="text-lg font-semibold text-med-900 mb-2">Information Disclaimer</h2>
                     <p class="text-sm text-slate-600">{{ $product->information_disclaimer }}</p>
                 </article>
             @endif
+            </div>
         </div>
     </div>
 </section>

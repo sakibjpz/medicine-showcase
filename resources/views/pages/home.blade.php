@@ -7,19 +7,145 @@
     $defaultBanner = public_path('images/pages/home-banner.jpg');
     $bannerImage = ($page?->banner_image ?? '') ?: (file_exists($defaultBanner) ? asset('images/pages/home-banner.jpg?v=' . filemtime($defaultBanner)) : null);
 @endphp
-<section class="relative text-white" @if ($bannerImage) style="background-image: url('{{ $bannerImage }}'); background-size: cover; background-position: center;" @endif>
+<section class="relative text-white lg:min-h-screen flex flex-col" @if ($bannerImage) style="background-image: url('{{ $bannerImage }}'); background-size: cover; background-position: center;" @endif>
     <div class="absolute inset-0 bg-navy-900/60"></div>
-    <div class="container-site py-16 lg:py-24 relative z-10">
-        <div class="max-w-3xl">
-            <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 break-words">
-                {{ $heading }}
-            </h1>
-            <p class="text-lg md:text-xl text-med-100 mb-8 break-words">
-                {{ $lead }}
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4">
-                <a href="{{ route('products') }}" class="btn-primary bg-white text-med-700 hover:bg-med-50 border border-white w-full sm:w-auto text-center">Browse Products</a>
-                <a href="{{ route('professional-enquiry') }}" class="btn-outline border-white text-white hover:bg-med-600 hover:text-white w-full sm:w-auto text-center">Submit Enquiry</a>
+    <div class="container-site py-8 lg:py-10 relative z-10 flex-1 flex flex-col min-h-0">
+        @php
+            $firstCategory = $categories->first();
+            $defaultCategory = $firstCategory?->name;
+            $firstCategoryProducts = $productsByCategory->get($defaultCategory) ?? collect();
+            $defaultSubcategory = $firstCategory?->subcategories[0] ?? '';
+            foreach ($firstCategory?->subcategories ?? [] as $sub) {
+                if ($firstCategoryProducts->contains(fn ($p) => ($p->subcategory ?: 'Other') === $sub)) {
+                    $defaultSubcategory = $sub;
+                    break;
+                }
+            }
+        @endphp
+        <div x-data='{
+            activeCategory: @json($defaultCategory),
+            activeSubcategory: @json($defaultSubcategory),
+            menuOpen: false
+        }'
+        class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 h-full items-stretch">
+            {{-- All drug categories sidebar --}}
+            <div class="order-2 lg:order-1 lg:col-span-3 lg:h-full flex flex-col">
+                <div class="relative bg-[#1e6fdb] rounded-xl shadow-lg lg:h-full flex flex-col overflow-hidden lg:overflow-visible"
+                     @mouseleave="menuOpen = false">
+                    <div class="px-4 py-3 bg-[#1558b0] rounded-t-xl font-bold flex items-center gap-2 text-sm uppercase tracking-wide">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        All drug categories
+                    </div>
+                    <ul class="flex-1 flex flex-col divide-y divide-blue-400/30">
+                        @foreach ($categories as $category)
+                            @php
+                                $categoryProductsForDefault = $productsByCategory->get($category->name) ?? collect();
+                                $defaultSubForCategory = $category->subcategories[0] ?? '';
+                                foreach ($category->subcategories ?? [] as $sub) {
+                                    if ($categoryProductsForDefault->contains(fn ($p) => ($p->subcategory ?: 'Other') === $sub)) {
+                                        $defaultSubForCategory = $sub;
+                                        break;
+                                    }
+                                }
+                            @endphp
+                            <li class="flex-1 flex">
+                                <button type="button"
+                                        @mouseenter="activeCategory = '{{ $category->name }}'; activeSubcategory = '{{ $defaultSubForCategory }}'; menuOpen = true"
+                                        @click="activeCategory = '{{ $category->name }}'; activeSubcategory = '{{ $defaultSubForCategory }}'; menuOpen = true"
+                                        :class="{ 'bg-[#1558b0]': activeCategory === '{{ $category->name }}' }"
+                                        class="w-full h-full text-left px-4 py-3 text-sm hover:bg-[#1558b0] transition flex items-center justify-between gap-2 {{ $loop->last ? 'lg:rounded-b-xl' : '' }}">
+                                    <span>{{ $category->name }}</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </li>
+                        @endforeach
+                    </ul>
+
+                    {{-- Flyout panel: opens to the right of the sidebar on desktop, stacks inside the card on mobile --}}
+                    @foreach ($categories as $category)
+                        @php
+                            $categoryProducts = $productsByCategory->get($category->name) ?? collect();
+                            $productsBySubcategory = $categoryProducts->groupBy(fn ($p) => $p->subcategory ?: 'Other');
+                        @endphp
+                        <div x-show="activeCategory === '{{ $category->name }}' && menuOpen"
+                             x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 -translate-x-2"
+                             x-transition:enter-end="opacity-100 translate-x-0"
+                             @mouseenter="activeCategory = '{{ $category->name }}'"
+                             class="bg-white text-slate-800 border-t border-blue-400/30 lg:border-t-0 lg:absolute lg:left-full lg:top-0 lg:bottom-0 lg:w-[560px] xl:w-[660px] lg:rounded-r-xl lg:shadow-mega lg:z-30 lg:overflow-hidden">
+                            <div class="grid grid-cols-1 lg:grid-cols-12 lg:h-full">
+                                {{-- Subcategory list --}}
+                                <div class="lg:col-span-4 lg:min-h-0 lg:overflow-y-auto border-b lg:border-b-0 lg:border-r border-slate-200 p-4">
+                                    @if (!empty($category->subcategories))
+                                        <ul class="space-y-2">
+                                            @foreach ($category->subcategories as $subcategory)
+                                                <li>
+                                                    <button type="button"
+                                                            @mouseenter="activeCategory = '{{ $category->name }}'; activeSubcategory = '{{ $subcategory }}'"
+                                                            @click="activeCategory = '{{ $category->name }}'; activeSubcategory = '{{ $subcategory }}'"
+                                                            :class="{ 'bg-med-100 text-med-900': activeSubcategory === '{{ $subcategory }}' }"
+                                                            class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                        {{ $subcategory }}
+                                                    </button>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        <p class="text-sm text-slate-500">No disease areas listed for this category.</p>
+                                    @endif
+                                </div>
+
+                                {{-- Products for active subcategory --}}
+                                <div class="lg:col-span-8 lg:min-h-0 lg:overflow-y-auto p-4">
+                                    @foreach ($category->subcategories as $subcategory)
+                                        @php
+                                            $subcategoryProducts = $productsBySubcategory->get($subcategory) ?? collect();
+                                        @endphp
+                                        <div x-show="activeSubcategory === '{{ $subcategory }}'" class="min-h-0">
+                                            <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                                <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                                {{ $subcategory }}
+                                            </h3>
+                                            @if ($subcategoryProducts->isNotEmpty())
+                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    @foreach ($subcategoryProducts as $product)
+                                                        <a href="{{ route('products.show', $product->url_slug) }}" class="group block p-3 rounded-lg border border-slate-100 hover:border-med-300 hover:bg-med-50 transition">
+                                                            <p class="font-semibold text-slate-800 group-hover:text-med-700 text-sm break-words">{{ $product->brand_name }}</p>
+                                                            <p class="text-xs text-slate-500 break-words">{{ $product->generic_inn_name }}{{ $product->strength ? ' · ' . $product->strength : '' }}</p>
+                                                        </a>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Right side: hero text over the banner --}}
+            <div class="order-1 lg:order-2 lg:col-span-9 h-full flex flex-col min-h-0">
+                <div class="max-w-3xl my-auto py-8">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 break-words">
+                        {{ $heading }}
+                    </h1>
+                    <p class="text-lg md:text-xl text-med-100 mb-6 break-words">
+                        {{ $lead }}
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="{{ route('products') }}" class="btn-primary bg-white text-med-700 hover:bg-med-50 border border-white w-full sm:w-auto text-center">Browse Products</a>
+                        <a href="{{ route('professional-enquiry') }}" class="btn-outline border-white text-white hover:bg-med-600 hover:text-white w-full sm:w-auto text-center">Submit Enquiry</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

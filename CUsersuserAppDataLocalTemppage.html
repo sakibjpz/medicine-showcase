@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="tLTMwSXjABaYXbRFGLj57J9TFNgnqSyLjVFaQKil">
+
+    <title>MedSource – Global Medical Platforms and Centers</title>
+    <meta name="description" content="MedSource is a professional-grade medical information portal for healthcare professionals, pharmacists, and informed patients.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link rel="preload" as="style" href="http://127.0.0.1:8000/build/assets/app-DSJqfSUt.css" /><link rel="modulepreload" as="script" href="http://127.0.0.1:8000/build/assets/app-C1nnhkM4.js" /><link rel="stylesheet" href="http://127.0.0.1:8000/build/assets/app-DSJqfSUt.css" /><script type="module" src="http://127.0.0.1:8000/build/assets/app-C1nnhkM4.js"></script>    </head>
+<body class="font-sans text-slate-800 bg-white antialiased flex flex-col min-h-screen">
+
+    <header x-data="{
+    megaOpen: false,
+    activeColumn: 'products',
+    mobileOpen: false,
+    mobileSearchOpen: false,
+    openMega(col) {
+        this.megaOpen = true;
+        this.activeColumn = col;
+    },
+    closeMega() {
+        this.megaOpen = false;
+        this.activeColumn = 'products';
+    },
+    toggleMobile() { this.mobileOpen = !this.mobileOpen; },
+    toggleMobileSearch() { this.mobileSearchOpen = !this.mobileSearchOpen; }
+}"
+    @keydown.escape.window="closeMega(); mobileOpen = false; mobileSearchOpen = false"
+    class="sticky top-0 z-50 bg-white shadow-header">
+
+    
+    <div class="bg-med-600 text-white text-xs">
+        <div class="container-site py-2 flex items-center justify-between">
+            <div class="hidden sm:flex items-center gap-4">
+                <span class="font-medium">Verified sourcing</span>
+                <span class="text-med-100">|</span>
+                <span>Quality-first information</span>
+                <span class="text-med-100">|</span>
+                <span>Professional enquiries</span>
+            </div>
+            <div class="flex items-center flex-wrap gap-2 sm:gap-4 sm:ml-auto text-[10px] sm:text-xs">
+                <span class="hidden sm:inline">Country: Global</span>
+                <span class="hidden sm:inline">Language: EN</span>
+                <a href="http://127.0.0.1:8000/faq" class="hover:text-med-100 hover:underline">Help</a>
+                                    <a href="http://127.0.0.1:8000/login" class="hover:text-med-100 hover:underline">Log in</a>
+                            </div>
+        </div>
+    </div>
+
+    
+    <div class="container-site py-4">
+        <div class="flex items-center justify-between gap-4 lg:gap-8">
+            
+            <a href="http://127.0.0.1:8000" class="flex items-center gap-3 shrink-0" aria-label="MedSource Home">
+                <img src="http://127.0.0.1:8000/images/logo.png" alt="MedSource" class="max-h-10 w-auto max-w-[140px] sm:max-w-[180px] lg:max-w-[220px]">
+            </a>
+
+            
+            <div class="hidden md:flex flex-1 max-w-2xl relative"
+                 x-data="{
+                    activeIndex: -1,
+                    query: null,
+                    suggestions: [],
+                    open: false,
+                    loading: false,
+                    abortController: null,
+                    async fetchSuggestions() {
+                        if (this.query.length < 2) { this.suggestions = []; this.open = false; return; }
+                        this.loading = true;
+                        if (this.abortController) this.abortController.abort();
+                        this.abortController = new AbortController();
+                        try {
+                            const res = await fetch('http://127.0.0.1:8000/search/suggest?q=' + encodeURIComponent(this.query), { signal: this.abortController.signal });
+                            this.suggestions = await res.json();
+                            this.open = this.suggestions.length > 0;
+                            this.activeIndex = -1;
+                        } catch (e) { if (e.name !== 'AbortError') console.error(e); }
+                        this.loading = false;
+                    },
+                    go(url) { window.location.href = url; },
+                    select() {
+                        if (this.activeIndex >= 0 && this.suggestions[this.activeIndex]) {
+                            this.go(this.suggestions[this.activeIndex].url);
+                        } else {
+                            this.$refs.searchForm.submit();
+                        }
+                    },
+                    next() {
+                        if (! this.suggestions.length) return;
+                        this.open = true;
+                        this.activeIndex = (this.activeIndex + 1) % this.suggestions.length;
+                    },
+                    prev() {
+                        if (! this.suggestions.length) return;
+                        this.open = true;
+                        this.activeIndex = (this.activeIndex - 1 + this.suggestions.length) % this.suggestions.length;
+                    },
+                    highlight(text) {
+                        if (! this.query) return text;
+                        const q = this.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        return text.replace(new RegExp('(' + q + ')', 'ig'), '<mark class=\'bg-yellow-100 text-inherit rounded px-0.5\'>$1</mark>');
+                    }
+                 }"
+                 @keydown.escape.window="open = false">
+                <form action="http://127.0.0.1:8000/search" method="GET" class="w-full relative" role="search" x-ref="searchForm" @submit="open = false">
+                    <label for="global-search" class="sr-only">Search products, pages, manufacturers and more</label>
+                    <div class="relative">
+                        <input id="global-search" name="q" type="search" x-model="query"
+                               @input.debounce.300ms="fetchSuggestions" @focus="if (query.length >= 2) fetchSuggestions()"
+                               class="w-full pl-11 pr-4 py-2.5 rounded-full border border-slate-300 bg-slate-50 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-med-500 focus:border-med-500 transition"
+                               placeholder="Search products, pages, manufacturers and more"
+                               autocomplete="off"
+                       @keydown.arrow-down.prevent="next"
+                       @keydown.arrow-up.prevent="prev"
+                       @keydown.enter.prevent="select"
+                       @keydown.escape="open = false; activeIndex = -1;">
+                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div x-show="open" x-transition class="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg border border-slate-200 shadow-lg z-50 overflow-hidden" @click.away="open = false" role="listbox" aria-label="Search suggestions">
+                        <ul class="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                            <template x-for="(item, index) in suggestions" :key="item.url + item.title">
+                                <li>
+                                    <button type="button"
+                                            @click="go(item.url)"
+                                            @mouseenter="activeIndex = index"
+                                            x-bind:class="{ 'bg-med-50': activeIndex === index }"
+                                            class="w-full text-left px-4 py-3 hover:bg-med-50 focus:bg-med-50 focus:outline-none">
+                                        <span class="text-[10px] font-semibold uppercase tracking-wider text-med-600" x-text="item.type"></span>
+                                        <span class="block text-sm font-semibold text-slate-900" x-html="highlight(item.title)"></span>
+                                        <span class="block text-xs text-slate-500 truncate" x-html="highlight(item.summary)"></span>
+                                    </button>
+                                </li>
+                            </template>
+                        </ul>
+                        <a :href="'http://127.0.0.1:8000/search?q=' + encodeURIComponent(query)" class="block w-full text-center px-4 py-2 text-sm text-med-700 bg-slate-50 hover:bg-med-50 border-t border-slate-100">See all results</a>
+                    </div>
+                </form>
+            </div>
+
+            
+            <a href="http://127.0.0.1:8000/professional-enquiry" class="hidden md:inline-flex btn-primary shrink-0">
+                Professional Enquiry
+            </a>
+
+            
+            <div class="flex items-center gap-2 md:hidden">
+                <button @click="toggleMobileSearch" class="p-2 rounded-md text-slate-600 hover:bg-slate-100" aria-label="Toggle search" :aria-expanded="mobileSearchOpen">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+                <button @click="toggleMobile" class="p-2 rounded-md text-slate-600 hover:bg-slate-100" :aria-expanded="mobileOpen" aria-controls="mobile-menu" aria-label="Toggle menu">
+                    <svg x-show="!mobileOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <svg x-show="mobileOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display: none;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        
+        <div x-show="mobileSearchOpen" class="md:hidden mt-3 relative" style="display: none;"
+             x-data="{
+                activeIndex: -1,
+                    query: null,
+                suggestions: [],
+                open: false,
+                loading: false,
+                abortController: null,
+                async fetchSuggestions() {
+                    if (this.query.length < 2) { this.suggestions = []; this.open = false; return; }
+                    this.loading = true;
+                    if (this.abortController) this.abortController.abort();
+                    this.abortController = new AbortController();
+                    try {
+                        const res = await fetch('http://127.0.0.1:8000/search/suggest?q=' + encodeURIComponent(this.query), { signal: this.abortController.signal });
+                        this.suggestions = await res.json();
+                        this.open = this.suggestions.length > 0;
+                            this.activeIndex = -1;
+                    } catch (e) { if (e.name !== 'AbortError') console.error(e); }
+                    this.loading = false;
+                },
+                go(url) { window.location.href = url; },
+                    select() {
+                        if (this.activeIndex >= 0 && this.suggestions[this.activeIndex]) {
+                            this.go(this.suggestions[this.activeIndex].url);
+                        } else {
+                            this.$refs.searchForm.submit();
+                        }
+                    },
+                    next() {
+                        if (! this.suggestions.length) return;
+                        this.open = true;
+                        this.activeIndex = (this.activeIndex + 1) % this.suggestions.length;
+                    },
+                    prev() {
+                        if (! this.suggestions.length) return;
+                        this.open = true;
+                        this.activeIndex = (this.activeIndex - 1 + this.suggestions.length) % this.suggestions.length;
+                    },
+                    highlight(text) {
+                        if (! this.query) return text;
+                        const q = this.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        return text.replace(new RegExp('(' + q + ')', 'ig'), '<mark class=\'bg-yellow-100 text-inherit rounded px-0.5\'>$1</mark>');
+                    }
+             }"
+             @keydown.escape.window="open = false">
+            <form action="http://127.0.0.1:8000/search" method="GET" role="search" class="relative" x-ref="searchForm" @submit="open = false">
+                <label for="mobile-search" class="sr-only">Search products, pages, manufacturers and more</label>
+                <input id="mobile-search" name="q" type="search" x-model="query"
+                       @input.debounce.300ms="fetchSuggestions" @focus="if (query.length >= 2) fetchSuggestions()"
+                       class="w-full px-4 py-2 rounded-full border border-slate-300 bg-slate-50"
+                       placeholder="Search products, pages, manufacturers and more"
+                       autocomplete="off"
+                       @keydown.arrow-down.prevent="next"
+                       @keydown.arrow-up.prevent="prev"
+                       @keydown.enter.prevent="select"
+                       @keydown.escape="open = false; activeIndex = -1;">
+
+                <div x-show="open" x-transition class="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg border border-slate-200 shadow-lg z-50 overflow-hidden" @click.away="open = false" role="listbox" aria-label="Search suggestions">
+                    <ul class="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                        <template x-for="(item, index) in suggestions" :key="item.url + item.title">
+                            <li>
+                                <button type="button"
+                                        @click="go(item.url)"
+                                        @mouseenter="activeIndex = index"
+                                        x-bind:class="{ 'bg-med-50': activeIndex === index }"
+                                        class="w-full text-left px-4 py-3 hover:bg-med-50 focus:bg-med-50 focus:outline-none">
+                                    <span class="text-[10px] font-semibold uppercase tracking-wider text-med-600" x-text="item.type"></span>
+                                    <span class="block text-sm font-semibold text-slate-900" x-html="highlight(item.title)"></span>
+                                    <span class="block text-xs text-slate-500 truncate" x-html="highlight(item.summary)"></span>
+                                </button>
+                            </li>
+                        </template>
+                    </ul>
+                    <a :href="'http://127.0.0.1:8000/search?q=' + encodeURIComponent(query)" class="block w-full text-center px-4 py-2 text-sm text-med-700 bg-slate-50 hover:bg-med-50 border-t border-slate-100">See all results</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <nav class="hidden md:block bg-navy-900 relative" aria-label="Main navigation" @mouseleave="closeMega()">
+        <div class="container-site">
+            <div class="flex items-stretch -mx-2">
+                <a href="http://127.0.0.1:8000" class="nav-pill active">Home</a>
+
+                <button type="button"
+                        class="nav-pill "
+                        @mouseenter="openMega('products')"
+                        @click="openMega('products')"
+                        :aria-expanded="megaOpen && activeColumn === 'products'"
+                        aria-haspopup="true">
+                    Products
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <a href="http://127.0.0.1:8000/therapeutic-areas" class="nav-pill ">Therapeutic Areas</a>
+
+                <a href="http://127.0.0.1:8000/manufacturers" class="nav-pill ">Manufacturers</a>
+
+                <a href="http://127.0.0.1:8000/how-it-works" class="nav-pill ">How It Works</a>
+
+                <a href="http://127.0.0.1:8000/quality-compliance" class="nav-pill ">Quality</a>
+
+                <button type="button"
+                        class="nav-pill "
+                        @mouseenter="openMega('resources')"
+                        @click="openMega('resources')"
+                        :aria-expanded="megaOpen && activeColumn === 'resources'"
+                        aria-haspopup="true">
+                    Resources
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <a href="http://127.0.0.1:8000/about" class="nav-pill ">About</a>
+
+                <a href="http://127.0.0.1:8000/contact-hub" class="nav-pill ">Contact</a>
+            </div>
+        </div>
+
+        
+        <div x-show="megaOpen"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="absolute top-full left-0 w-full bg-white border-t border-slate-200 shadow-mega z-40"
+             style="display: none;"
+             role="region"
+             aria-label="Mega menu">
+            <div class="container-site py-8">
+                <h2 class="text-2xl font-bold text-navy-900 mb-2">Navigation overview</h2>
+                <p class="text-sm text-slate-500 mb-6">Explore MedSource by category.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                    
+                    <div class="p-5 rounded-lg bg-med-50 border border-med-100 transition"
+                         :class="{ 'ring-2 ring-med-500 bg-med-100': activeColumn === 'products' }"
+                         @mouseenter="activeColumn = 'products'">
+                        <h3 class="text-med-700 font-bold uppercase text-xs tracking-wider mb-5">Product Information</h3>
+                        <ul class="space-y-4 text-sm">
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/products" class="font-medium text-slate-800 hover:text-med-700">All Products</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/products/search" class="font-medium text-slate-800 hover:text-med-700">Product Search</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/products/documents" class="font-medium text-slate-800 hover:text-med-700">Product Documents</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/products/country-status" class="font-medium text-slate-800 hover:text-med-700">Country Status</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    
+                    <div class="p-5 rounded-lg bg-med-50 border border-med-100 transition"
+                         :class="{ 'ring-2 ring-med-500 bg-med-100': activeColumn === 'explore' }"
+                         @mouseenter="activeColumn = 'explore'">
+                        <h3 class="text-med-700 font-bold uppercase text-xs tracking-wider mb-5">Explore</h3>
+                        <ul class="space-y-4 text-sm">
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/therapeutic-areas" class="font-medium text-slate-800 hover:text-med-700">Therapeutic Areas</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/manufacturers" class="font-medium text-slate-800 hover:text-med-700">Manufacturers</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/countries-languages" class="font-medium text-slate-800 hover:text-med-700">Countries & Languages</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/how-it-works" class="font-medium text-slate-800 hover:text-med-700">How It Works</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    
+                    <div class="p-5 rounded-lg bg-med-50 border border-med-100 transition"
+                         :class="{ 'ring-2 ring-med-500 bg-med-100': activeColumn === 'trust' }"
+                         @mouseenter="activeColumn = 'trust'">
+                        <h3 class="text-med-700 font-bold uppercase text-xs tracking-wider mb-5">Trust & Quality</h3>
+                        <ul class="space-y-4 text-sm">
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/quality-compliance" class="font-medium text-slate-800 hover:text-med-700">Quality & Compliance</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/safety-notices" class="font-medium text-slate-800 hover:text-med-700">Safety Notices</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/official-sources" class="font-medium text-slate-800 hover:text-med-700">Official Sources</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/accessibility" class="font-medium text-slate-800 hover:text-med-700">Accessibility</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    
+                    <div class="p-5 rounded-lg bg-med-50 border border-med-100 transition"
+                         :class="{ 'ring-2 ring-med-500 bg-med-100': activeColumn === 'resources' }"
+                         @mouseenter="activeColumn = 'resources'">
+                        <h3 class="text-med-700 font-bold uppercase text-xs tracking-wider mb-5">Resources & Help</h3>
+                        <ul class="space-y-4 text-sm">
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/articles-updates" class="font-medium text-slate-800 hover:text-med-700">Articles & Updates</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/faq" class="font-medium text-slate-800 hover:text-med-700">FAQ</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/contact-hub" class="font-medium text-slate-800 hover:text-med-700">Contact Hub</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-med-500 shrink-0"></span>
+                                <div>
+                                    <a href="http://127.0.0.1:8000/professional-enquiry" class="font-medium text-slate-800 hover:text-med-700">Professional Enquiry</a>
+                                    <p class="text-xs text-slate-500">Clear destination and content label</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    
+    <div class="hidden md:block bg-med-50 border-b border-med-100">
+        <div class="container-site py-2.5">
+            <div class="flex items-center flex-wrap gap-x-6 gap-y-1 text-sm">
+                <span class="font-semibold text-navy-900">Therapeutic categories</span>
+                                    <a href="http://127.0.0.1:8000/products?category=Oncology" class="text-med-700 hover:text-med-900 hover:underline">Oncology</a>
+                                    <a href="http://127.0.0.1:8000/products?category=Hepatology" class="text-med-700 hover:text-med-900 hover:underline">Hepatology</a>
+                                    <a href="http://127.0.0.1:8000/products?category=Diabetes" class="text-med-700 hover:text-med-900 hover:underline">Diabetes</a>
+                                    <a href="http://127.0.0.1:8000/products?category=Cardiovascular" class="text-med-700 hover:text-med-900 hover:underline">Cardiovascular</a>
+                                    <a href="http://127.0.0.1:8000/products?category=Respiratory" class="text-med-700 hover:text-med-900 hover:underline">Respiratory</a>
+                                    <a href="http://127.0.0.1:8000/products?category=Other" class="text-med-700 hover:text-med-900 hover:underline">Other</a>
+                            </div>
+        </div>
+    </div>
+
+    
+    <div x-show="mobileOpen"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="-translate-y-4 opacity-0"
+         x-transition:enter-end="translate-y-0 opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="translate-y-0 opacity-100"
+         x-transition:leave-end="-translate-y-4 opacity-0"
+         class="absolute inset-x-0 top-full z-50 md:hidden bg-white border-b border-slate-200 shadow-xl max-h-[calc(100vh-8rem)] overflow-y-auto"
+         style="display: none;"
+         id="mobile-menu"
+         role="dialog"
+         aria-modal="true"
+         aria-label="Mobile navigation">
+        <div class="p-4 space-y-2">
+
+            <a href="http://127.0.0.1:8000" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium bg-med-600 text-white">Home</a>
+            <a href="http://127.0.0.1:8000/products" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium bg-navy-900 text-white hover:bg-navy-800">Products</a>
+            <a href="http://127.0.0.1:8000/therapeutic-areas" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium bg-navy-900 text-white hover:bg-navy-800">Therapeutic Areas</a>
+            <a href="http://127.0.0.1:8000/manufacturers" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium bg-navy-900 text-white hover:bg-navy-800">Manufacturers</a>
+            <a href="http://127.0.0.1:8000/how-it-works" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium bg-navy-900 text-white hover:bg-navy-800">How It Works</a>
+            <a href="http://127.0.0.1:8000/quality-compliance" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium bg-navy-900 text-white hover:bg-navy-800">Quality</a>
+            <a href="http://127.0.0.1:8000/resources" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium bg-navy-900 text-white hover:bg-navy-800">Resources</a>
+            <a href="http://127.0.0.1:8000/about" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium bg-navy-900 text-white hover:bg-navy-800">About</a>
+            <a href="http://127.0.0.1:8000/contact-hub" class="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium bg-navy-900 text-white hover:bg-navy-800">Contact</a>
+
+            <div class="pt-4 border-t border-slate-200">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Therapeutic categories</p>
+                <div class="flex flex-wrap gap-2">
+                                            <a href="http://127.0.0.1:8000/products?category=Oncology" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">Oncology</a>
+                                            <a href="http://127.0.0.1:8000/products?category=Hepatology" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">Hepatology</a>
+                                            <a href="http://127.0.0.1:8000/products?category=Diabetes" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">Diabetes</a>
+                                            <a href="http://127.0.0.1:8000/products?category=Cardiovascular" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">Cardiovascular</a>
+                                            <a href="http://127.0.0.1:8000/products?category=Respiratory" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">Respiratory</a>
+                                            <a href="http://127.0.0.1:8000/products?category=Other" class="px-3 py-1.5 text-xs font-medium rounded-full border border-med-600 text-med-700 bg-white hover:bg-med-50">Other</a>
+                                    </div>
+            </div>
+
+            <a href="http://127.0.0.1:8000/professional-enquiry" class="block w-full text-center btn-primary mt-2">Professional Enquiry</a>
+        </div>
+    </div>
+</header>
+
+    
+    <main class="flex-1" id="main-content">
+        <section class="relative text-white min-h-screen flex flex-col"  style="background-image: url('http://127.0.0.1:8000/images/pages/home-banner.jpg?v=1789537726'); background-size: cover; background-position: center;" >
+    <div class="absolute inset-0 bg-navy-900/60"></div>
+    <div class="container-site py-6 lg:py-10 relative z-10 flex-1 flex flex-col min-h-0">
+                <div x-data="{
+            activeCategory: "Oncology",
+            activeSubcategory: "Lung cancer",
+            setActive(category, subcategory) {
+                this.activeCategory = category;
+                this.activeSubcategory = subcategory;
+            }
+        }" class="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-6 h-full items-stretch">
+            
+            <div class="lg:col-span-3 h-full flex flex-col">
+                <div class="bg-[#1e6fdb] rounded-t-xl lg:rounded-xl overflow-hidden shadow-lg h-full flex flex-col">
+                    <div class="px-4 py-3 bg-[#1558b0] font-bold flex items-center gap-2 text-sm uppercase tracking-wide">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        All drug categories
+                    </div>
+                    <ul class="flex-1 flex flex-col divide-y divide-blue-400/30">
+                                                                                <li class="flex-1 flex">
+                                <button type="button"
+                                        @mouseenter="setActive('Oncology', 'Lung cancer')"
+                                        @click="setActive('Oncology', 'Lung cancer')"
+                                        :class="{ 'bg-[#1558b0]': activeCategory === 'Oncology' }"
+                                        class="w-full h-full text-left block px-4 py-3 text-sm hover:bg-[#1558b0] transition flex items-center">
+                                    Oncology
+                                </button>
+                            </li>
+                                                                                <li class="flex-1 flex">
+                                <button type="button"
+                                        @mouseenter="setActive('Hepatology', 'Hepatitis B')"
+                                        @click="setActive('Hepatology', 'Hepatitis B')"
+                                        :class="{ 'bg-[#1558b0]': activeCategory === 'Hepatology' }"
+                                        class="w-full h-full text-left block px-4 py-3 text-sm hover:bg-[#1558b0] transition flex items-center">
+                                    Hepatology
+                                </button>
+                            </li>
+                                                                                <li class="flex-1 flex">
+                                <button type="button"
+                                        @mouseenter="setActive('Diabetes', 'Type 2 diabetes')"
+                                        @click="setActive('Diabetes', 'Type 2 diabetes')"
+                                        :class="{ 'bg-[#1558b0]': activeCategory === 'Diabetes' }"
+                                        class="w-full h-full text-left block px-4 py-3 text-sm hover:bg-[#1558b0] transition flex items-center">
+                                    Diabetes
+                                </button>
+                            </li>
+                                                                                <li class="flex-1 flex">
+                                <button type="button"
+                                        @mouseenter="setActive('Cardiovascular', 'Dyslipidaemia')"
+                                        @click="setActive('Cardiovascular', 'Dyslipidaemia')"
+                                        :class="{ 'bg-[#1558b0]': activeCategory === 'Cardiovascular' }"
+                                        class="w-full h-full text-left block px-4 py-3 text-sm hover:bg-[#1558b0] transition flex items-center">
+                                    Cardiovascular
+                                </button>
+                            </li>
+                                                                                <li class="flex-1 flex">
+                                <button type="button"
+                                        @mouseenter="setActive('Respiratory', 'Asthma')"
+                                        @click="setActive('Respiratory', 'Asthma')"
+                                        :class="{ 'bg-[#1558b0]': activeCategory === 'Respiratory' }"
+                                        class="w-full h-full text-left block px-4 py-3 text-sm hover:bg-[#1558b0] transition flex items-center">
+                                    Respiratory
+                                </button>
+                            </li>
+                                                                                <li class="flex-1 flex">
+                                <button type="button"
+                                        @mouseenter="setActive('Other', 'Other')"
+                                        @click="setActive('Other', 'Other')"
+                                        :class="{ 'bg-[#1558b0]': activeCategory === 'Other' }"
+                                        class="w-full h-full text-left block px-4 py-3 text-sm hover:bg-[#1558b0] transition flex items-center">
+                                    Other
+                                </button>
+                            </li>
+                                            </ul>
+                </div>
+            </div>
+
+            
+            <div class="lg:col-span-9 h-full flex flex-col min-h-0">
+                
+                <div class="max-w-3xl mb-6">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 break-words">
+                        Global pharmaceutical information. Quality-first professional access.
+                    </h1>
+                    <p class="text-lg md:text-xl text-med-100 mb-6 break-words">
+                        MedSource centralises product data, regulatory information, therapeutic education and corporate transparency for healthcare professionals, pharmacists and informed patients.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="http://127.0.0.1:8000/products" class="btn-primary bg-white text-med-700 hover:bg-med-50 border border-white w-full sm:w-auto text-center">Browse Products</a>
+                        <a href="http://127.0.0.1:8000/professional-enquiry" class="btn-outline border-white text-white hover:bg-med-600 hover:text-white w-full sm:w-auto text-center">Submit Enquiry</a>
+                    </div>
+                </div>
+
+                
+                                                        <div x-show="activeCategory === 'Oncology'"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         class="bg-white text-slate-800 rounded-b-xl lg:rounded-xl shadow-lg flex-1 min-h-0 overflow-hidden">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 h-full">
+                            
+                            <div class="lg:col-span-4 h-full overflow-y-auto border-b lg:border-b-0 lg:border-r border-slate-200 p-4">
+                                                                    <ul class="space-y-2">
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Oncology', 'Solid tumours')"
+                                                        @click="setActive('Oncology', 'Solid tumours')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Solid tumours' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Solid tumours
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Oncology', 'Haematology')"
+                                                        @click="setActive('Oncology', 'Haematology')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Haematology' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Haematology
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Oncology', 'Breast cancer')"
+                                                        @click="setActive('Oncology', 'Breast cancer')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Breast cancer' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Breast cancer
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Oncology', 'Lung cancer')"
+                                                        @click="setActive('Oncology', 'Lung cancer')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Lung cancer' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Lung cancer
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Oncology', 'Supportive care')"
+                                                        @click="setActive('Oncology', 'Supportive care')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Supportive care' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Supportive care
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Oncology', 'Other')"
+                                                        @click="setActive('Oncology', 'Other')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Other' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Other
+                                                </button>
+                                            </li>
+                                                                            </ul>
+                                                            </div>
+
+                            
+                            <div class="lg:col-span-8 h-full overflow-y-auto p-4">
+                                                                                                        <div x-show="activeSubcategory === 'Solid tumours'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Solid tumours
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Haematology'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Haematology
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Breast cancer'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Breast cancer
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Lung cancer'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Lung cancer
+                                        </h3>
+                                                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                                                    <a href="http://127.0.0.1:8000/products/tecentriq-840mg" class="group block p-3 rounded-lg border border-slate-100 hover:border-med-300 hover:bg-med-50 transition">
+                                                        <p class="font-semibold text-slate-800 group-hover:text-med-700 text-sm break-words">Tecentriq</p>
+                                                        <p class="text-xs text-slate-500 break-words">atezolizumab · 840 mg</p>
+                                                    </a>
+                                                                                            </div>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Supportive care'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Supportive care
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Other'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Other
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                            </div>
+                        </div>
+                    </div>
+                                                        <div x-show="activeCategory === 'Hepatology'"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         class="bg-white text-slate-800 rounded-b-xl lg:rounded-xl shadow-lg flex-1 min-h-0 overflow-hidden">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 h-full">
+                            
+                            <div class="lg:col-span-4 h-full overflow-y-auto border-b lg:border-b-0 lg:border-r border-slate-200 p-4">
+                                                                    <ul class="space-y-2">
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Hepatology', 'Hepatitis B')"
+                                                        @click="setActive('Hepatology', 'Hepatitis B')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Hepatitis B' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Hepatitis B
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Hepatology', 'Hepatitis C')"
+                                                        @click="setActive('Hepatology', 'Hepatitis C')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Hepatitis C' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Hepatitis C
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Hepatology', 'Liver disease')"
+                                                        @click="setActive('Hepatology', 'Liver disease')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Liver disease' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Liver disease
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Hepatology', 'Cirrhosis')"
+                                                        @click="setActive('Hepatology', 'Cirrhosis')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Cirrhosis' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Cirrhosis
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Hepatology', 'Other')"
+                                                        @click="setActive('Hepatology', 'Other')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Other' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Other
+                                                </button>
+                                            </li>
+                                                                            </ul>
+                                                            </div>
+
+                            
+                            <div class="lg:col-span-8 h-full overflow-y-auto p-4">
+                                                                                                        <div x-show="activeSubcategory === 'Hepatitis B'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Hepatitis B
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Hepatitis C'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Hepatitis C
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Liver disease'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Liver disease
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Cirrhosis'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Cirrhosis
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Other'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Other
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                            </div>
+                        </div>
+                    </div>
+                                                        <div x-show="activeCategory === 'Diabetes'"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         class="bg-white text-slate-800 rounded-b-xl lg:rounded-xl shadow-lg flex-1 min-h-0 overflow-hidden">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 h-full">
+                            
+                            <div class="lg:col-span-4 h-full overflow-y-auto border-b lg:border-b-0 lg:border-r border-slate-200 p-4">
+                                                                    <ul class="space-y-2">
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Diabetes', 'Type 2 diabetes')"
+                                                        @click="setActive('Diabetes', 'Type 2 diabetes')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Type 2 diabetes' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Type 2 diabetes
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Diabetes', 'Type 1 diabetes')"
+                                                        @click="setActive('Diabetes', 'Type 1 diabetes')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Type 1 diabetes' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Type 1 diabetes
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Diabetes', 'Insulin')"
+                                                        @click="setActive('Diabetes', 'Insulin')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Insulin' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Insulin
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Diabetes', 'Diabetic complications')"
+                                                        @click="setActive('Diabetes', 'Diabetic complications')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Diabetic complications' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Diabetic complications
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Diabetes', 'Other')"
+                                                        @click="setActive('Diabetes', 'Other')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Other' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Other
+                                                </button>
+                                            </li>
+                                                                            </ul>
+                                                            </div>
+
+                            
+                            <div class="lg:col-span-8 h-full overflow-y-auto p-4">
+                                                                                                        <div x-show="activeSubcategory === 'Type 2 diabetes'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Type 2 diabetes
+                                        </h3>
+                                                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                                                    <a href="http://127.0.0.1:8000/products/januvia-100mg" class="group block p-3 rounded-lg border border-slate-100 hover:border-med-300 hover:bg-med-50 transition">
+                                                        <p class="font-semibold text-slate-800 group-hover:text-med-700 text-sm break-words">Januvia</p>
+                                                        <p class="text-xs text-slate-500 break-words">sitagliptin · 100 mg</p>
+                                                    </a>
+                                                                                            </div>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Type 1 diabetes'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Type 1 diabetes
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Insulin'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Insulin
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Diabetic complications'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Diabetic complications
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Other'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Other
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                            </div>
+                        </div>
+                    </div>
+                                                        <div x-show="activeCategory === 'Cardiovascular'"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         class="bg-white text-slate-800 rounded-b-xl lg:rounded-xl shadow-lg flex-1 min-h-0 overflow-hidden">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 h-full">
+                            
+                            <div class="lg:col-span-4 h-full overflow-y-auto border-b lg:border-b-0 lg:border-r border-slate-200 p-4">
+                                                                    <ul class="space-y-2">
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Cardiovascular', 'Hypertension')"
+                                                        @click="setActive('Cardiovascular', 'Hypertension')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Hypertension' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Hypertension
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Cardiovascular', 'Heart failure')"
+                                                        @click="setActive('Cardiovascular', 'Heart failure')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Heart failure' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Heart failure
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Cardiovascular', 'Anticoagulation')"
+                                                        @click="setActive('Cardiovascular', 'Anticoagulation')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Anticoagulation' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Anticoagulation
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Cardiovascular', 'Dyslipidaemia')"
+                                                        @click="setActive('Cardiovascular', 'Dyslipidaemia')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Dyslipidaemia' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Dyslipidaemia
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Cardiovascular', 'Other')"
+                                                        @click="setActive('Cardiovascular', 'Other')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Other' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Other
+                                                </button>
+                                            </li>
+                                                                            </ul>
+                                                            </div>
+
+                            
+                            <div class="lg:col-span-8 h-full overflow-y-auto p-4">
+                                                                                                        <div x-show="activeSubcategory === 'Hypertension'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Hypertension
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Heart failure'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Heart failure
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Anticoagulation'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Anticoagulation
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Dyslipidaemia'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Dyslipidaemia
+                                        </h3>
+                                                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                                                    <a href="http://127.0.0.1:8000/products/lipitor-20mg" class="group block p-3 rounded-lg border border-slate-100 hover:border-med-300 hover:bg-med-50 transition">
+                                                        <p class="font-semibold text-slate-800 group-hover:text-med-700 text-sm break-words">Lipitor</p>
+                                                        <p class="text-xs text-slate-500 break-words">atorvastatin · 20 mg</p>
+                                                    </a>
+                                                                                            </div>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Other'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Other
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                            </div>
+                        </div>
+                    </div>
+                                                        <div x-show="activeCategory === 'Respiratory'"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         class="bg-white text-slate-800 rounded-b-xl lg:rounded-xl shadow-lg flex-1 min-h-0 overflow-hidden">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 h-full">
+                            
+                            <div class="lg:col-span-4 h-full overflow-y-auto border-b lg:border-b-0 lg:border-r border-slate-200 p-4">
+                                                                    <ul class="space-y-2">
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Respiratory', 'Asthma')"
+                                                        @click="setActive('Respiratory', 'Asthma')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Asthma' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Asthma
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Respiratory', 'COPD')"
+                                                        @click="setActive('Respiratory', 'COPD')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'COPD' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    COPD
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Respiratory', 'Allergy')"
+                                                        @click="setActive('Respiratory', 'Allergy')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Allergy' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Allergy
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Respiratory', 'Cystic fibrosis')"
+                                                        @click="setActive('Respiratory', 'Cystic fibrosis')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Cystic fibrosis' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Cystic fibrosis
+                                                </button>
+                                            </li>
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Respiratory', 'Other')"
+                                                        @click="setActive('Respiratory', 'Other')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Other' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Other
+                                                </button>
+                                            </li>
+                                                                            </ul>
+                                                            </div>
+
+                            
+                            <div class="lg:col-span-8 h-full overflow-y-auto p-4">
+                                                                                                        <div x-show="activeSubcategory === 'Asthma'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Asthma
+                                        </h3>
+                                                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                                                    <a href="http://127.0.0.1:8000/products/symbicort-160-4-5mcg" class="group block p-3 rounded-lg border border-slate-100 hover:border-med-300 hover:bg-med-50 transition">
+                                                        <p class="font-semibold text-slate-800 group-hover:text-med-700 text-sm break-words">Symbicort</p>
+                                                        <p class="text-xs text-slate-500 break-words">budesonide / formoterol · 160/4.5 mcg</p>
+                                                    </a>
+                                                                                            </div>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'COPD'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            COPD
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Allergy'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Allergy
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Cystic fibrosis'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Cystic fibrosis
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                                                                        <div x-show="activeSubcategory === 'Other'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Other
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                            </div>
+                        </div>
+                    </div>
+                                                        <div x-show="activeCategory === 'Other'"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         class="bg-white text-slate-800 rounded-b-xl lg:rounded-xl shadow-lg flex-1 min-h-0 overflow-hidden">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 h-full">
+                            
+                            <div class="lg:col-span-4 h-full overflow-y-auto border-b lg:border-b-0 lg:border-r border-slate-200 p-4">
+                                                                    <ul class="space-y-2">
+                                                                                    <li>
+                                                <button type="button"
+                                                        @mouseenter="setActive('Other', 'Other')"
+                                                        @click="setActive('Other', 'Other')"
+                                                        :class="{ 'bg-med-100 text-med-900': activeSubcategory === 'Other' }"
+                                                        class="w-full text-left px-3 py-2 rounded-lg hover:bg-med-50 text-sm transition">
+                                                    Other
+                                                </button>
+                                            </li>
+                                                                            </ul>
+                                                            </div>
+
+                            
+                            <div class="lg:col-span-8 h-full overflow-y-auto p-4">
+                                                                                                        <div x-show="activeSubcategory === 'Other'"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         class="h-full">
+                                        <h3 class="text-sm font-bold text-med-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <span class="w-1 h-4 bg-med-500 rounded-full"></span>
+                                            Other
+                                        </h3>
+                                                                                    <p class="text-sm text-slate-500">No recommended products listed for this condition.</p>
+                                                                            </div>
+                                                            </div>
+                        </div>
+                    </div>
+                            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container-site py-6">
+    <div class="overflow-x-auto">
+        <div class="prose prose-slate max-w-none break-words"><p>Welcome to MedSource.</p></div>
+    </div>
+</section>
+
+<section class="container-site py-14">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="w-12 h-12 bg-med-100 text-med-700 rounded-lg flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </div>
+            <h2 class="text-lg font-bold text-med-900 mb-2">Intelligent Search</h2>
+            <p class="text-slate-600 text-sm">Search products, manufacturers and topics in under 500 ms with structured results.</p>
+        </div>
+        <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="w-12 h-12 bg-med-100 text-med-700 rounded-lg flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+            <h2 class="text-lg font-bold text-med-900 mb-2">Trust &amp; Quality</h2>
+            <p class="text-slate-600 text-sm">ISO, GMP and compliance policies with real-time safety notices from FDA, EMA and WHO.</p>
+        </div>
+        <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="w-12 h-12 bg-med-100 text-med-700 rounded-lg flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+            <h2 class="text-lg font-bold text-med-900 mb-2">Worldwide Reach</h2>
+            <p class="text-slate-600 text-sm">Country-specific availability, multi-language support and global regulatory links.</p>
+        </div>
+    </div>
+</section>
+
+<section class="container-site py-14">
+    <h2 class="text-2xl md:text-3xl font-bold text-navy-900 mb-1">Our categories</h2>
+<p class="text-slate-500 mb-10">Lots of new products and product collections</p>
+
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-x-6 lg:gap-y-10">
+                    <a href="http://127.0.0.1:8000/products?category=Oncology" class="group block text-center">
+            <div class="relative aspect-square rounded-full overflow-hidden shadow-md">
+                                    <img src="http://127.0.0.1:8000/images/categories/oncology.jpg" alt="Oncology" loading="lazy"
+                         class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                <span class="absolute inset-0 flex items-center justify-center px-3">
+                    <span class="bg-white/95 text-slate-800 text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 rounded-full shadow text-center leading-tight max-w-full">Oncology</span>
+                </span>
+            </div>
+            <span class="block mt-3 text-xs text-slate-500">1 product</span>
+        </a>
+                    <a href="http://127.0.0.1:8000/products?category=Hepatology" class="group block text-center">
+            <div class="relative aspect-square rounded-full overflow-hidden shadow-md">
+                                    <img src="http://127.0.0.1:8000/images/categories/hepatology.jpg" alt="Hepatology" loading="lazy"
+                         class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                <span class="absolute inset-0 flex items-center justify-center px-3">
+                    <span class="bg-white/95 text-slate-800 text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 rounded-full shadow text-center leading-tight max-w-full">Hepatology</span>
+                </span>
+            </div>
+            <span class="block mt-3 text-xs text-slate-500">1 product</span>
+        </a>
+                    <a href="http://127.0.0.1:8000/products?category=Diabetes" class="group block text-center">
+            <div class="relative aspect-square rounded-full overflow-hidden shadow-md">
+                                    <img src="http://127.0.0.1:8000/images/categories/diabetes.jpg" alt="Diabetes" loading="lazy"
+                         class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                <span class="absolute inset-0 flex items-center justify-center px-3">
+                    <span class="bg-white/95 text-slate-800 text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 rounded-full shadow text-center leading-tight max-w-full">Diabetes</span>
+                </span>
+            </div>
+            <span class="block mt-3 text-xs text-slate-500">1 product</span>
+        </a>
+                    <a href="http://127.0.0.1:8000/products?category=Cardiovascular" class="group block text-center">
+            <div class="relative aspect-square rounded-full overflow-hidden shadow-md">
+                                    <img src="http://127.0.0.1:8000/images/categories/cardiovascular.jpg" alt="Cardiovascular" loading="lazy"
+                         class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                <span class="absolute inset-0 flex items-center justify-center px-3">
+                    <span class="bg-white/95 text-slate-800 text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 rounded-full shadow text-center leading-tight max-w-full">Cardiovascular</span>
+                </span>
+            </div>
+            <span class="block mt-3 text-xs text-slate-500">1 product</span>
+        </a>
+                    <a href="http://127.0.0.1:8000/products?category=Respiratory" class="group block text-center">
+            <div class="relative aspect-square rounded-full overflow-hidden shadow-md">
+                                    <img src="http://127.0.0.1:8000/images/categories/respiratory.jpg" alt="Respiratory" loading="lazy"
+                         class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                <span class="absolute inset-0 flex items-center justify-center px-3">
+                    <span class="bg-white/95 text-slate-800 text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 rounded-full shadow text-center leading-tight max-w-full">Respiratory</span>
+                </span>
+            </div>
+            <span class="block mt-3 text-xs text-slate-500">1 product</span>
+        </a>
+                    <a href="http://127.0.0.1:8000/products?category=Other" class="group block text-center">
+            <div class="relative aspect-square rounded-full overflow-hidden shadow-md">
+                                    <img src="http://127.0.0.1:8000/images/categories/other.jpg" alt="Other" loading="lazy"
+                         class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                <span class="absolute inset-0 flex items-center justify-center px-3">
+                    <span class="bg-white/95 text-slate-800 text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 rounded-full shadow text-center leading-tight max-w-full">Other</span>
+                </span>
+            </div>
+            <span class="block mt-3 text-xs text-slate-500">0 products</span>
+        </a>
+    </div>
+</section>
+
+<section class="container-site py-14">
+    <h2 class="text-2xl md:text-3xl font-bold text-med-900 mb-8">Best-selling drugs</h2>
+    <div class="space-y-12">
+                                                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    <div class="lg:col-span-1">
+                        <div class="lg:sticky lg:top-6">
+                            <div class="relative w-24 h-24 mb-4 rounded-full overflow-hidden border-4 border-white shadow-md">
+                                <img src="http://127.0.0.1:8000/images/categories/oncology.jpg" alt="Oncology" class="w-full h-full object-cover">
+                            </div>
+                            <h3 class="text-xl font-bold text-med-900">Oncology</h3>
+                            <p class="text-sm text-slate-500 mt-1">1 products</p>
+                            <a href="http://127.0.0.1:8000/products" class="text-sm text-med-600 hover:underline mt-3 inline-block">View all</a>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                                                                                            <a href="http://127.0.0.1:8000/products/tecentriq-840mg" class="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-med-400 transition">
+                                    <div class="h-48 bg-slate-100 overflow-hidden">
+                                                                                    <img src="http://127.0.0.1:8000/images/products/tecentriq-840mg.jpg" alt="Tecentriq" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                                                            </div>
+                                    <div class="p-4">
+                                        <h4 class="font-bold text-med-900 break-words">Tecentriq</h4>
+                                        <p class="text-sm text-slate-600 mt-1 break-words">atezolizumab · RG7446</p>
+                                                                                    <p class="text-xs text-slate-500 mt-2 break-words">Roche Pharmaceuticals</p>
+                                                                            </div>
+                                </a>
+                                                    </div>
+                    </div>
+                </div>
+                                                                                            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    <div class="lg:col-span-1">
+                        <div class="lg:sticky lg:top-6">
+                            <div class="relative w-24 h-24 mb-4 rounded-full overflow-hidden border-4 border-white shadow-md">
+                                <img src="http://127.0.0.1:8000/images/categories/diabetes.jpg" alt="Diabetes" class="w-full h-full object-cover">
+                            </div>
+                            <h3 class="text-xl font-bold text-med-900">Diabetes</h3>
+                            <p class="text-sm text-slate-500 mt-1">1 products</p>
+                            <a href="http://127.0.0.1:8000/products" class="text-sm text-med-600 hover:underline mt-3 inline-block">View all</a>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                                                                                            <a href="http://127.0.0.1:8000/products/januvia-100mg" class="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-med-400 transition">
+                                    <div class="h-48 bg-slate-100 overflow-hidden">
+                                                                                    <img src="http://127.0.0.1:8000/images/products/januvia-100mg.jpg" alt="Januvia" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                                                            </div>
+                                    <div class="p-4">
+                                        <h4 class="font-bold text-med-900 break-words">Januvia</h4>
+                                        <p class="text-sm text-slate-600 mt-1 break-words">sitagliptin</p>
+                                                                                    <p class="text-xs text-slate-500 mt-2 break-words">Pfizer Inc.</p>
+                                                                            </div>
+                                </a>
+                                                    </div>
+                    </div>
+                </div>
+                                                            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    <div class="lg:col-span-1">
+                        <div class="lg:sticky lg:top-6">
+                            <div class="relative w-24 h-24 mb-4 rounded-full overflow-hidden border-4 border-white shadow-md">
+                                <img src="http://127.0.0.1:8000/images/categories/cardiovascular.jpg" alt="Cardiovascular" class="w-full h-full object-cover">
+                            </div>
+                            <h3 class="text-xl font-bold text-med-900">Cardiovascular</h3>
+                            <p class="text-sm text-slate-500 mt-1">1 products</p>
+                            <a href="http://127.0.0.1:8000/products" class="text-sm text-med-600 hover:underline mt-3 inline-block">View all</a>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                                                                                            <a href="http://127.0.0.1:8000/products/lipitor-20mg" class="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-med-400 transition">
+                                    <div class="h-48 bg-slate-100 overflow-hidden">
+                                                                                    <img src="http://127.0.0.1:8000/images/products/lipitor-20mg.jpg" alt="Lipitor" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                                                            </div>
+                                    <div class="p-4">
+                                        <h4 class="font-bold text-med-900 break-words">Lipitor</h4>
+                                        <p class="text-sm text-slate-600 mt-1 break-words">atorvastatin</p>
+                                                                                    <p class="text-xs text-slate-500 mt-2 break-words">Pfizer Inc.</p>
+                                                                            </div>
+                                </a>
+                                                    </div>
+                    </div>
+                </div>
+                                                            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    <div class="lg:col-span-1">
+                        <div class="lg:sticky lg:top-6">
+                            <div class="relative w-24 h-24 mb-4 rounded-full overflow-hidden border-4 border-white shadow-md">
+                                <img src="http://127.0.0.1:8000/images/categories/respiratory.jpg" alt="Respiratory" class="w-full h-full object-cover">
+                            </div>
+                            <h3 class="text-xl font-bold text-med-900">Respiratory</h3>
+                            <p class="text-sm text-slate-500 mt-1">1 products</p>
+                            <a href="http://127.0.0.1:8000/products" class="text-sm text-med-600 hover:underline mt-3 inline-block">View all</a>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                                                                                            <a href="http://127.0.0.1:8000/products/symbicort-160-4-5mcg" class="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-med-400 transition">
+                                    <div class="h-48 bg-slate-100 overflow-hidden">
+                                                                                    <img src="http://127.0.0.1:8000/images/products/symbicort-160-4-5mcg.jpg" alt="Symbicort" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                                                            </div>
+                                    <div class="p-4">
+                                        <h4 class="font-bold text-med-900 break-words">Symbicort</h4>
+                                        <p class="text-sm text-slate-600 mt-1 break-words">budesonide / formoterol</p>
+                                                                                    <p class="text-xs text-slate-500 mt-2 break-words">AstraZeneca PLC</p>
+                                                                            </div>
+                                </a>
+                                                    </div>
+                    </div>
+                </div>
+                                                        </div>
+</section>
+
+<section class="bg-slate-50 py-14">
+    <div class="container-site">
+        <div class="lg:flex lg:items-center lg:justify-between gap-10">
+            <div class="lg:w-1/2 mb-8 lg:mb-0">
+                <h2 class="text-2xl md:text-3xl font-bold text-med-900 mb-4">Explore therapeutic areas</h2>
+                <p class="text-slate-600 mb-6">Find medicines, clinical data and regulatory status organised by medical condition.</p>
+                <a href="http://127.0.0.1:8000/therapeutic-areas" class="btn-primary">View Therapeutic Areas</a>
+            </div>
+            <div class="lg:w-1/2 grid grid-cols-2 gap-4">
+                <a href="http://127.0.0.1:8000/therapeutic-areas" class="p-4 bg-white rounded-lg border border-slate-200 hover:border-med-500 transition font-medium text-med-900 break-words text-center">Cardiology</a>
+                <a href="http://127.0.0.1:8000/therapeutic-areas" class="p-4 bg-white rounded-lg border border-slate-200 hover:border-med-500 transition font-medium text-med-900 break-words text-center">Oncology</a>
+                <a href="http://127.0.0.1:8000/therapeutic-areas" class="p-4 bg-white rounded-lg border border-slate-200 hover:border-med-500 transition font-medium text-med-900 break-words text-center">Infectious Diseases</a>
+                <a href="http://127.0.0.1:8000/therapeutic-areas" class="p-4 bg-white rounded-lg border border-slate-200 hover:border-med-500 transition font-medium text-med-900 break-words text-center">Endocrinology</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container-site py-14">
+    <div class="bg-med-900 text-white rounded-2xl p-8 lg:p-12 lg:flex lg:items-center lg:justify-between gap-8">
+        <div>
+            <h2 class="text-2xl md:text-3xl font-bold mb-3">Professional enquiry</h2>
+            <p class="text-med-100 mb-2">Quality assurance · Worldwide reach · Professional response</p>
+            <p class="text-slate-300 text-sm">Submit an enquiry and our team will respond with verified product and partnership information.</p>
+        </div>
+        <a href="http://127.0.0.1:8000/professional-enquiry" class="btn-primary bg-white text-med-700 hover:bg-med-50 w-full sm:w-auto mt-6 lg:mt-0 text-center">Submit Enquiry</a>
+    </div>
+</section>
+    </main>
+
+    <footer class="bg-navy-900 text-slate-200 border-t border-navy-800">
+
+    <div class="container-site py-12 lg:py-16">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
+
+            
+            <div class="sm:col-span-2 lg:col-span-1">
+                <a href="http://127.0.0.1:8000" class="inline-block mb-4 bg-white rounded-lg p-2">
+                    <img src="http://127.0.0.1:8000/images/logo.png" alt="MedSource" class="max-h-8 w-auto">
+                </a>
+                <p class="text-sm text-med-100 leading-relaxed mb-4">Global pharmaceutical information. Quality-first professional access.</p>
+                <p class="text-xs text-slate-400 leading-relaxed">Information on availability, affordability and regulatory status varies by jurisdiction. No content replaces specific medical advice.</p>
+            </div>
+
+            
+            <div>
+                <h3 class="text-white font-semibold mb-4 uppercase text-sm tracking-wider">Explore</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="http://127.0.0.1:8000/products" class="text-slate-300 hover:text-white transition">Products</a></li>
+                    <li><a href="http://127.0.0.1:8000/therapeutic-areas" class="text-slate-300 hover:text-white transition">Therapeutic Areas</a></li>
+                    <li><a href="http://127.0.0.1:8000/manufacturers" class="text-slate-300 hover:text-white transition">Manufacturers</a></li>
+                    <li><a href="http://127.0.0.1:8000/countries-languages" class="text-slate-300 hover:text-white transition">Countries</a></li>
+                </ul>
+            </div>
+
+            
+            <div>
+                <h3 class="text-white font-semibold mb-4 uppercase text-sm tracking-wider">Support</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="http://127.0.0.1:8000/how-it-works" class="text-slate-300 hover:text-white transition">How It Works</a></li>
+                    <li><a href="http://127.0.0.1:8000/faq" class="text-slate-300 hover:text-white transition">FAQ</a></li>
+                    <li><a href="http://127.0.0.1:8000/professional-enquiry" class="text-slate-300 hover:text-white transition">Professional Enquiry</a></li>
+                    <li><a href="http://127.0.0.1:8000/contact-hub" class="text-slate-300 hover:text-white transition">Contact</a></li>
+                </ul>
+            </div>
+
+            
+            <div>
+                <h3 class="text-white font-semibold mb-4 uppercase text-sm tracking-wider">Transparency</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="http://127.0.0.1:8000/quality-compliance" class="text-slate-300 hover:text-white transition">Quality</a></li>
+                    <li><a href="http://127.0.0.1:8000/safety-notices" class="text-slate-300 hover:text-white transition">Safety Notices</a></li>
+                    <li><a href="http://127.0.0.1:8000/privacy" class="text-slate-300 hover:text-white transition">Privacy</a></li>
+                    <li><a href="http://127.0.0.1:8000/terms" class="text-slate-300 hover:text-white transition">Terms</a></li>
+                    <li><a href="http://127.0.0.1:8000/accessibility" class="text-slate-300 hover:text-white transition">Accessibility</a></li>
+                </ul>
+            </div>
+
+            
+            <div class="sm:col-span-2 lg:col-span-1 text-center lg:text-right" aria-label="Contact us">
+                <h3 class="text-white font-semibold mb-4 uppercase text-sm tracking-wider">Contact us</h3>
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <p class="text-slate-400">Service hotline</p>
+                        <a href="tel:+8801400400123" class="text-slate-200 hover:text-white font-medium transition">+8801400400123</a>
+                    </div>
+                    <div>
+                        <p class="text-slate-400">Official customer service email</p>
+                        <a href="mailto:ajayingpharma@gmail.com" class="text-slate-200 hover:text-white font-medium transition break-all">ajayingpharma@gmail.com</a>
+                    </div>
+                    <div class="pt-2">
+                        <img src="http://127.0.0.1:8000/images/qr-whatsapp.png" alt="Scan this QR code to chat with us on WhatsApp at +8801400400123" class="w-20 h-20 rounded border border-white/10 bg-white p-1 inline-block">
+                        <p class="text-xs text-slate-400 mt-2 max-w-40 mx-auto lg:ml-auto">Scan the QR code to add customer service via WhatsApp</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="border-t border-navy-800">
+        <div class="container-site py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+            <p>&copy; 2026 MedSource. All rights reserved.</p>
+            <a href="http://127.0.0.1:8000/professional-enquiry" class="btn-primary w-full sm:w-auto text-center">Professional Enquiry</a>
+        </div>
+    </div>
+</footer>
+
+    </body>
+</html>

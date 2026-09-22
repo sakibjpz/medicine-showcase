@@ -5,9 +5,8 @@
 
             {{-- Brand --}}
             <div class="sm:col-span-2 lg:col-span-1">
-                <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-white font-bold text-xl mb-4">
-                    <span class="w-8 h-8 rounded-full bg-med-600 flex items-center justify-center text-white text-sm">M</span>
-                    <span class="uppercase tracking-wider text-sm">MedSource</span>
+                <a href="{{ route('home') }}" class="inline-block mb-4 bg-white rounded-lg p-2">
+                    <img src="{{ asset('images/logo.png') }}" alt="MedSource" class="max-h-8 w-auto">
                 </a>
                 <p class="text-sm text-med-100 leading-relaxed mb-4">Global pharmaceutical information. Quality-first professional access.</p>
                 <p class="text-xs text-slate-400 leading-relaxed">Information on availability, affordability and regulatory status varies by jurisdiction. No content replaces specific medical advice.</p>
@@ -53,14 +52,14 @@
                 <div class="space-y-3 text-sm">
                     <div>
                         <p class="text-slate-400">Service hotline</p>
-                        <a href="tel:+8801717467783" class="text-slate-200 hover:text-white font-medium transition">+880 1717-467783</a>
+                        <a href="tel:+8801400400123" class="text-slate-200 hover:text-white font-medium transition">+8801400400123</a>
                     </div>
                     <div>
                         <p class="text-slate-400">Official customer service email</p>
                         <a href="mailto:ajayingpharma@gmail.com" class="text-slate-200 hover:text-white font-medium transition break-all">ajayingpharma@gmail.com</a>
                     </div>
                     <div class="pt-2">
-                        <img src="{{ asset('images/qr-whatsapp.png') }}" alt="Scan this QR code to chat with us on WhatsApp at +880 1717-467783" class="w-20 h-20 rounded border border-white/10 bg-white p-1 inline-block">
+                        <img src="{{ asset('images/qr-whatsapp.png') }}" alt="Scan this QR code to chat with us on WhatsApp at +8801400400123" class="w-20 h-20 rounded border border-white/10 bg-white p-1 inline-block">
                         <p class="text-xs text-slate-400 mt-2 max-w-40 mx-auto lg:ml-auto">Scan the QR code to add customer service via WhatsApp</p>
                     </div>
                 </div>
@@ -69,7 +68,7 @@
     </div>
 
     <div class="border-t border-navy-800">
-        <div class="container-site py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+        <div class="container-site pt-4 pb-20 md:py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
             <p>&copy; {{ date('Y') }} MedSource. All rights reserved.</p>
             <a href="{{ route('professional-enquiry') }}" class="btn-primary w-full sm:w-auto text-center">Professional Enquiry</a>
         </div>
