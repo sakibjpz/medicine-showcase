@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\AdminBannerController;
 use App\Http\Controllers\AdminCategoryController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminHeadlineController;
 use App\Http\Controllers\AdminProductController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
@@ -102,6 +104,20 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/pages/{page}/edit', [AdminController::class, 'editPage'])->name('pages.edit');
     Route::patch('/pages/{page}', [AdminController::class, 'updatePage'])->name('pages.update');
     Route::delete('/pages/{page}', [AdminController::class, 'destroyPage'])->name('pages.destroy');
+
+    Route::get('/headlines', [AdminHeadlineController::class, 'index'])->name('headlines.index');
+    Route::get('/headlines/create', [AdminHeadlineController::class, 'create'])->name('headlines.create');
+    Route::post('/headlines', [AdminHeadlineController::class, 'store'])->name('headlines.store');
+    Route::get('/headlines/{headline}/edit', [AdminHeadlineController::class, 'edit'])->name('headlines.edit');
+    Route::match(['put', 'patch'], '/headlines/{headline}', [AdminHeadlineController::class, 'update'])->name('headlines.update');
+    Route::delete('/headlines/{headline}', [AdminHeadlineController::class, 'destroy'])->name('headlines.destroy');
+
+    Route::get('/banners', [AdminBannerController::class, 'index'])->name('banners.index');
+    Route::get('/banners/create', [AdminBannerController::class, 'create'])->name('banners.create');
+    Route::post('/banners', [AdminBannerController::class, 'store'])->name('banners.store');
+    Route::get('/banners/{banner}/edit', [AdminBannerController::class, 'edit'])->name('banners.edit');
+    Route::match(['put', 'patch'], '/banners/{banner}', [AdminBannerController::class, 'update'])->name('banners.update');
+    Route::delete('/banners/{banner}', [AdminBannerController::class, 'destroy'])->name('banners.destroy');
 
     Route::get('/categories', [AdminCategoryController::class, 'index'])->name('categories.index');
     Route::get('/categories/create', [AdminCategoryController::class, 'create'])->name('categories.create');

@@ -15,8 +15,8 @@
     @keydown.escape.window="closeMega(); mobileOpen = false"
     class="sticky top-0 z-50 bg-white shadow-header">
 
-    {{-- Pre-header --}}
-    <div class="bg-med-600 text-white text-xs">
+    {{-- Pre-header (desktop only) --}}
+    <div class="hidden sm:block bg-med-600 text-white text-xs">
         <div class="container-site py-2 flex items-center justify-between">
             <div class="hidden sm:flex items-center gap-4">
                 <span class="font-medium">Verified sourcing</span>
@@ -46,7 +46,7 @@
 
     {{-- Brand / search / CTA row --}}
     <div class="bg-med-600 md:bg-white">
-    <div class="container-site py-3 md:py-4">
+    <div class="container-site pt-3 pb-1 md:pt-4 md:pb-1.5">
         <div class="flex items-center justify-between gap-4 lg:gap-8">
             {{-- Mobile hamburger (left) --}}
             <div class="flex items-center gap-2 md:hidden">
@@ -167,6 +167,47 @@
             </div>
         </div>
 
+        </div>
+    </div>
+
+    {{-- Updates ticker (under the logo row; visible on all screens) --}}
+    @php
+        $tickerItems = [
+            ['title' => 'Beacon Pharmaceuticals product list updated — view the latest generics', 'url' => route('manufacturers'), 'color' => 'text-navy-800'],
+            ['title' => 'New oncology additions: Osimertinib, Sotorasib and more now listed', 'url' => route('products'), 'color' => 'text-med-700'],
+            ['title' => 'Professional enquiries are now answered within 24 hours', 'url' => route('professional-enquiry'), 'color' => 'text-rose-600'],
+            ['title' => 'Read the latest Articles & Updates from the MedSource team', 'url' => route('articles-updates'), 'color' => 'text-amber-600'],
+        ];
+    @endphp
+    <div class="bg-slate-50 border-b border-slate-200">
+        <div class="container-site pb-1.5 flex items-center">
+            <div class="relative flex-1 h-6 sm:h-7 overflow-hidden"
+                 x-data="{
+                    items: {{ Js::from($tickerItems) }},
+                    i: 0,
+                    timer: null,
+                    start() { if (this.items.length > 1) this.timer = setInterval(() => { this.i = (this.i + 1) % this.items.length }, 3000); },
+                    stop() { clearInterval(this.timer); }
+                 }"
+                 x-init="start()"
+                 @mouseenter="stop()" @mouseleave="start()"
+                 aria-label="Latest updates">
+                <template x-for="(item, idx) in items" :key="idx">
+                    <a :href="item.url"
+                       x-show="i === idx"
+                       x-transition:enter="transition ease-out duration-500"
+                       x-transition:enter-start="opacity-0 translate-y-full"
+                       x-transition:enter-end="opacity-100 translate-y-0"
+                       x-transition:leave="transition ease-in duration-500"
+                       x-transition:leave-start="opacity-100 translate-y-0"
+                       x-transition:leave-end="opacity-0 -translate-y-full"
+                       class="absolute inset-0 flex items-center text-xs sm:text-sm font-medium hover:text-med-600 truncate"
+                       :class="item.color"
+                       style="display: none;"
+                       x-text="item.title"></a>
+                </template>
+                <noscript><a href="{{ $tickerItems[0]['url'] }}" class="flex items-center h-6 text-xs sm:text-sm text-slate-700">{{ $tickerItems[0]['title'] }}</a></noscript>
+            </div>
         </div>
     </div>
 
@@ -494,7 +535,7 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="translate-y-0 opacity-100"
          x-transition:leave-end="-translate-y-4 opacity-0"
-         class="absolute inset-x-0 top-full z-50 md:hidden bg-white border-b border-slate-200 shadow-xl max-h-[calc(100vh-8rem)] overflow-y-auto"
+         class="absolute inset-x-0 top-full z-50 md:hidden bg-white border-b border-slate-200 shadow-xl max-h-[calc(100dvh-100%-4.5rem)] overflow-y-auto overscroll-contain"
          style="display: none;"
          id="mobile-menu"
          role="dialog"

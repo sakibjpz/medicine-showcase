@@ -6,8 +6,21 @@
 @php
     $defaultBanner = public_path('images/pages/home-banner.jpg');
     $bannerImage = ($page?->banner_image ?? '') ?: (file_exists($defaultBanner) ? asset('images/pages/home-banner.jpg?v=' . filemtime($defaultBanner)) : null);
+    $heroBanners = $banners->isNotEmpty() ? $banners : collect($bannerImage ? [$bannerImage] : []);
 @endphp
-<section class="relative text-white min-h-[180px] sm:min-h-[240px] lg:min-h-screen flex flex-col" @if ($bannerImage) style="background-image: url('{{ $bannerImage }}'); background-size: cover; background-position: center;" @endif>
+<section class="relative text-white min-h-[180px] sm:min-h-[240px] lg:min-h-screen flex flex-col"
+         x-data="{ activeBanner: 0 }"
+         @if ($heroBanners->count() > 1) x-init="setInterval(() => activeBanner = (activeBanner + 1) % {{ $heroBanners->count() }}, 6000)" @endif>
+    @foreach ($heroBanners as $i => $img)
+        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ $img }}');"
+             x-show="activeBanner === {{ $i }}" @if ($i > 0) x-cloak @endif
+             x-transition:enter="transition ease-in-out duration-1000"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in-out duration-1000"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"></div>
+    @endforeach
     <div class="absolute inset-0 bg-navy-900/20 sm:bg-navy-900/60"></div>
     <div class="container-site w-full py-8 lg:py-10 lg:!pl-6 relative z-10 flex-1 flex flex-col min-h-0">
         @php
@@ -30,15 +43,15 @@
         class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 h-full items-stretch">
             {{-- All drug categories sidebar (desktop only; mobile uses the icon grid below) --}}
             <div id="dbg-sidebar" class="hidden lg:flex order-2 lg:order-1 lg:col-span-3 lg:h-full flex-col">
-                <div class="relative bg-[#1e6fdb] rounded-xl shadow-lg lg:h-full flex flex-col overflow-hidden lg:overflow-visible"
+                <div class="relative bg-med-600 text-white rounded-xl shadow-lg lg:h-full flex flex-col overflow-hidden lg:overflow-visible"
                      @mouseleave="menuOpen = false">
-                    <div class="px-4 py-3 bg-[#1558b0] rounded-t-xl font-bold flex items-center gap-2 text-sm uppercase tracking-wide">
+                    <div class="px-4 py-3 bg-med-700 rounded-t-xl font-bold flex items-center gap-2 text-sm uppercase tracking-wide">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                         All drug categories
                     </div>
-                    <ul class="flex-1 flex flex-col divide-y divide-blue-400/30">
+                    <ul class="flex-1 flex flex-col divide-y divide-white/20">
                         @foreach ($categories as $category)
                             @php
                                 $categoryProductsForDefault = $productsByCategory->get($category->name) ?? collect();
@@ -54,8 +67,8 @@
                                 <button type="button"
                                         @mouseenter="activeCategory = '{{ $category->name }}'; activeSubcategory = '{{ $defaultSubForCategory }}'; menuOpen = true"
                                         @click="activeCategory = '{{ $category->name }}'; activeSubcategory = '{{ $defaultSubForCategory }}'; menuOpen = true"
-                                        :class="{ 'bg-[#1558b0]': activeCategory === '{{ $category->name }}' }"
-                                        class="w-full h-full text-left px-4 py-3 text-sm hover:bg-[#1558b0] transition flex items-center justify-between gap-2 {{ $loop->last ? 'lg:rounded-b-xl' : '' }}">
+                                        :class="{ 'bg-med-700': activeCategory === '{{ $category->name }}' }"
+                                        class="w-full h-full text-left px-4 py-3 text-sm hover:bg-med-700 transition flex items-center justify-between gap-2 {{ $loop->last ? 'lg:rounded-b-xl' : '' }}">
                                     <span>{{ $category->name }}</span>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -77,7 +90,7 @@
                              x-transition:enter-start="opacity-0 -translate-x-2"
                              x-transition:enter-end="opacity-100 translate-x-0"
                              @mouseenter="activeCategory = '{{ $category->name }}'"
-                             class="bg-white text-slate-800 border-t border-blue-400/30 lg:border-t-0 lg:absolute lg:left-full lg:top-0 lg:bottom-0 lg:w-[560px] xl:w-[660px] lg:rounded-r-xl lg:shadow-mega lg:z-30 lg:overflow-hidden">
+                             class="bg-white text-slate-800 border-t border-white/20 lg:border-t-0 lg:absolute lg:left-full lg:top-0 lg:bottom-0 lg:w-[560px] xl:w-[660px] lg:rounded-r-xl lg:shadow-mega lg:z-30 lg:overflow-hidden">
                             <div class="grid grid-cols-1 lg:grid-cols-12 lg:h-full">
                                 {{-- Subcategory list --}}
                                 <div class="lg:col-span-4 lg:min-h-0 lg:overflow-y-auto border-b lg:border-b-0 lg:border-r border-slate-200 p-4">
@@ -135,12 +148,21 @@
             {{-- Right side: hero text over the banner (hidden on mobile - banner shows clean) --}}
             <div class="order-1 lg:order-2 lg:col-span-9 h-full flex flex-col min-h-0">
                 <div class="max-w-3xl my-auto py-8 hidden sm:block">
-                    <h1 class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 break-words">
-                        {{ $heading }}
-                    </h1>
-                    <p class="hidden sm:block text-lg md:text-xl text-med-100 mb-6 break-words">
-                        {{ $lead }}
-                    </p>
+                    @php
+                        $heroHeadlines = $headlines->isNotEmpty() ? $headlines : collect([$heading]);
+                    @endphp
+                    <div x-data="{ active: 0 }"
+                         @if ($heroHeadlines->count() > 1) x-init="setInterval(() => active = (active + 1) % {{ $heroHeadlines->count() }}, 4000)" @endif>
+                        @foreach ($heroHeadlines as $i => $headline)
+                            <h1 x-show="active === {{ $i }}" @if ($i > 0) x-cloak @endif
+                                x-transition:enter="transition ease-out duration-500"
+                                x-transition:enter-start="opacity-0 translate-y-3"
+                                x-transition:enter-end="opacity-100 translate-y-0"
+                                class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 break-words">
+                                {{ $headline }}
+                            </h1>
+                        @endforeach
+                    </div>
                     <div class="hidden sm:flex flex-col sm:flex-row gap-4">
                         <a href="{{ route('products') }}" class="btn-primary bg-white text-med-700 hover:bg-med-50 border border-white w-full sm:w-auto text-center">Browse Products</a>
                         <a href="{{ route('professional-enquiry') }}" class="btn-outline border-white text-white hover:bg-med-600 hover:text-white w-full sm:w-auto text-center">Submit Enquiry</a>

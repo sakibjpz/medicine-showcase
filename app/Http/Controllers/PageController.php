@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Banner;
 use App\Models\Category;
 use App\Models\ContactMessage;
 use App\Models\Enquiry;
+use App\Models\Headline;
 use App\Models\Manufacturer;
 use App\Models\Page;
 use App\Models\Product;
@@ -491,11 +493,16 @@ class PageController extends Controller
             ->get()
             ->groupBy('therapeutic_category');
 
+        $headlines = Headline::active()->orderBy('sort_order')->orderBy('id')->pluck('text');
+        $banners = Banner::active()->orderBy('sort_order')->orderBy('id')->pluck('image');
+
         return view('pages.home', [
             'title' => 'MedSource – Global Medical Platforms and Centers',
             'breadcrumbs' => [],
             'heading' => $page->heading,
             'lead' => $page->lead ?? '',
+            'headlines' => $headlines,
+            'banners' => $banners,
             'page' => $page,
             'categories' => $categories,
             'productCounts' => Product::selectRaw('therapeutic_category, COUNT(*) as count')
