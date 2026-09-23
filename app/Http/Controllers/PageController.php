@@ -487,12 +487,13 @@ class PageController extends Controller
 
         $categories = Category::active()->orderBy('sort_order')->orderBy('name')->get();
 
-        $productsByCategory = Product::with('manufacturer')
+        $products = Product::with('manufacturer')
             ->whereIn('content_status', ['Approved', 'Published'])
             ->orderBy('sort_order')
             ->orderBy('brand_name')
-            ->get()
-            ->groupBy('therapeutic_category');
+            ->get();
+
+        $productsByCategory = $this->groupProductsByCategories($products);
 
         $headlines = Headline::active()->orderBy('sort_order')->orderBy('id')->pluck('text');
         $banners = Banner::active()->orderBy('sort_order')->orderBy('id')->pluck('image');
@@ -506,9 +507,7 @@ class PageController extends Controller
             'banners' => $banners,
             'page' => $page,
             'categories' => $categories,
-            'productCounts' => Product::selectRaw('therapeutic_category, COUNT(*) as count')
-                ->groupBy('therapeutic_category')
-                ->pluck('count', 'therapeutic_category'),
+            'productCounts' => $productsByCategory->map(fn ($group) => $group->count()),
             'categoryImages' => $this->categoryImages($categories),
             'productsByCategory' => $productsByCategory,
         ]);
@@ -533,12 +532,10 @@ class PageController extends Controller
             $products = Product::published()->orderBy('sort_order')->orderBy('brand_name')->get();
 
             $viewData['categories'] = $categories;
-            $viewData['productCounts'] = Product::selectRaw('therapeutic_category, COUNT(*) as count')
-                ->groupBy('therapeutic_category')
-                ->pluck('count', 'therapeutic_category');
+            $viewData['productCounts'] = $this->groupProductsByCategories($products)->map(fn ($group) => $group->count());
             $viewData['categoryImages'] = $this->categoryImages($categories);
-            $viewData['productsByCategory'] = $products->groupBy('therapeutic_category');
-            $viewData['productsBySubcategory'] = $products->groupBy(fn (Product $p) => $p->therapeutic_category . '|' . $p->subcategory);
+            $viewData['productsByCategory'] = $this->groupProductsByCategories($products);
+            $viewData['productsBySubcategory'] = $this->groupProductsBySubcategoryPairs($products);
 
             return view('pages.therapeutic-areas', $viewData);
         }
@@ -547,12 +544,16 @@ class PageController extends Controller
             $productsQuery = Product::published()->orderBy('sort_order')->orderBy('brand_name');
 
             if ($request->filled('category')) {
-                $productsQuery->where('therapeutic_category', $request->input('category'));
+                $productsQuery->whereJsonContains('categories', $request->input('category'));
                 $viewData['heading'] .= ' – ' . e($request->input('category'));
             }
 
             if ($request->filled('subcategory')) {
-                $productsQuery->where('subcategory', $request->input('subcategory'));
+                if ($request->filled('category')) {
+                    $productsQuery->whereJsonContains('subcategories', $request->input('category') . '|' . $request->input('subcategory'));
+                } else {
+                    $productsQuery->where('subcategories', 'like', '%|' . addcslashes($request->input('subcategory'), '%_\\') . '"%');
+                }
                 $viewData['heading'] .= ' – ' . e($request->input('subcategory'));
             }
 
@@ -589,7 +590,7 @@ class PageController extends Controller
                 continue;
             }
 
-            $product = Product::where('therapeutic_category', $name)
+            $product = Product::whereJsonContains('categories', $name)
                 ->whereNotNull('product_images')
                 ->first(['product_images']);
 
@@ -597,6 +598,32 @@ class PageController extends Controller
         }
 
         return $map;
+    }
+
+    private function groupProductsByCategories($products)
+    {
+        $map = [];
+
+        foreach ($products as $product) {
+            foreach ($product->categoryList() as $category) {
+                $map[$category][] = $product;
+            }
+        }
+
+        return collect($map)->map(fn ($items) => collect($items));
+    }
+
+    private function groupProductsBySubcategoryPairs($products)
+    {
+        $map = [];
+
+        foreach ($products as $product) {
+            foreach ($product->subcategoryPairs() as $pair) {
+                $map[$pair][] = $product;
+            }
+        }
+
+        return collect($map)->map(fn ($items) => collect($items));
     }
 
     public function search(Request $request)

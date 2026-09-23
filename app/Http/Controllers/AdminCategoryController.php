@@ -59,7 +59,7 @@ class AdminCategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        if (Product::where('therapeutic_category', $category->name)->exists()) {
+        if (Product::whereJsonContains('categories', $category->name)->exists()) {
             return back()->withErrors(['category' => 'Cannot delete: products are assigned to this category. Reassign or archive them first.']);
         }
 

@@ -119,11 +119,15 @@ class AdminProductController extends Controller
         }
 
         if ($request->filled('category')) {
-            $query->where('therapeutic_category', $request->input('category'));
+            $query->whereJsonContains('categories', $request->input('category'));
         }
 
         if ($request->filled('subcategory')) {
-            $query->where('subcategory', $request->input('subcategory'));
+            if ($request->filled('category')) {
+                $query->whereJsonContains('subcategories', $request->input('category') . '|' . $request->input('subcategory'));
+            } else {
+                $query->where('subcategories', 'like', '%|' . addcslashes($request->input('subcategory'), '%_\\') . '"%');
+            }
         }
 
         if ($request->filled('manufacturer')) {
@@ -211,9 +215,25 @@ class AdminProductController extends Controller
     {
         $input = $request->all();
 
+        $rawCats = $input['categories'] ?? $input['therapeutic_category'] ?? [];
+        if (is_string($rawCats)) {
+            $rawCats = explode(',', $rawCats);
+        }
+        $input['categories'] = array_values(array_filter(array_map('trim', (array) $rawCats)));
+
+        $rawSubs = $input['subcategories'] ?? [];
+        if (is_string($rawSubs)) {
+            $rawSubs = explode(',', $rawSubs);
+        }
+        $input['subcategories'] = array_values(array_filter(array_map('trim', (array) $rawSubs)));
+
+        if (empty($input['subcategories']) && ! empty($input['subcategory']) && ! empty($input['categories'][0])) {
+            $input['subcategories'] = [$input['categories'][0] . '|' . trim($input['subcategory'])];
+        }
+
         $input['internal_product_id'] = ! empty($input['internal_product_id'])
             ? $input['internal_product_id']
-            : ($product?->internal_product_id ?? Product::nextInternalId($input['therapeutic_category'] ?? 'Other'));
+            : ($product?->internal_product_id ?? Product::nextInternalId($input['categories'][0] ?? 'Other'));
 
         $input['url_slug'] = ! empty($input['url_slug'])
             ? $input['url_slug']
@@ -256,6 +276,13 @@ class AdminProductController extends Controller
         }
 
         $input['sort_order'] = (int) ($input['sort_order'] ?? 0);
+
+        $input['therapeutic_category'] = $input['categories'][0] ?? ($input['therapeutic_category'] ?? null);
+        $firstPair = $input['subcategories'][0] ?? null;
+        $input['subcategory'] = $firstPair
+            ? (str_contains($firstPair, '|') ? explode('|', $firstPair, 2)[1] : $firstPair)
+            : null;
+
         $input['country_market'] = $this->toArray($input['country_market'] ?? '');
         $input['product_images'] = $input['product_images'] ?? [];
 
@@ -367,12 +394,12 @@ class AdminProductController extends Controller
             'brand_name' => 'required|string|max:255',
             'generic_inn_name' => 'required|string|max:255',
             'other_name' => 'nullable|string|max:255',
-            'therapeutic_category' => ['required', 'string', Rule::in($this->categoryNames())],
-            'subcategory' => [
-                'required',
-                'string',
-                Rule::in($this->subcategoryMap()[$input['therapeutic_category'] ?? ''] ?? []),
-            ],
+            'categories' => 'required|array|min:1',
+            'categories.*' => ['required', 'string', Rule::in($this->categoryNames())],
+            'subcategories' => 'nullable|array',
+            'subcategories.*' => ['required', 'string', Rule::in($this->subcategoryPairs())],
+            'therapeutic_category' => 'nullable|string|max:255',
+            'subcategory' => 'nullable|string|max:255',
             'dosage_form' => 'required|string|in:Tablet,Capsule,Injection,Oral liquid,Cream/ointment,Other',
             'strength' => ['required', 'string', 'max:50', 'regex:/^\d+\s*(mg|g|mcg|mL|IU|%)?$/i'],
             'pack_size_spec' => 'required|string|max:255',
@@ -444,5 +471,18 @@ class AdminProductController extends Controller
             ->get(['name', 'subcategories'])
             ->mapWithKeys(fn (Category $c) => [$c->name => $c->subcategories ?? ['Other']])
             ->all();
+    }
+
+    private function subcategoryPairs(): array
+    {
+        $pairs = [];
+
+        foreach ($this->subcategoryMap() as $cat => $subs) {
+            foreach ($subs as $sub) {
+                $pairs[] = $cat . '|' . $sub;
+            }
+        }
+
+        return $pairs;
     }
 }

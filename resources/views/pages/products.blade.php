@@ -19,7 +19,7 @@
                 <a href="{{ route('products.show', $product->url_slug) }}" class="block p-5 bg-white border border-slate-200 rounded-lg hover:border-med-500 hover:shadow-md transition group">
                     <h3 class="font-semibold text-med-900 text-lg group-hover:text-med-600 break-words">{{ $product->brand_name }}</h3>
                     <p class="text-sm text-slate-500 mt-1 break-words">{{ $product->generic_inn_name }} &middot; {{ $product->strength }}</p>
-                    <p class="text-sm text-slate-500 mt-1 break-words">{{ $product->therapeutic_category }} &middot; {{ $product->dosage_form }}</p>
+                    <p class="text-sm text-slate-500 mt-1 break-words">{{ implode(', ', $product->categoryList()) }} &middot; {{ $product->dosage_form }}</p>
                     @if ($product->short_description)
                         <p class="text-sm text-slate-600 mt-3 line-clamp-3 break-words">{{ $product->short_description }}</p>
                     @endif

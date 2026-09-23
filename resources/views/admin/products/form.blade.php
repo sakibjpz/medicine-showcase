@@ -71,24 +71,39 @@ function oldOr($product, $path, $default = '') {
                 </div>
             </div>
 
-            <div>
-                <label for="therapeutic_category" class="block text-sm font-medium text-slate-700">Therapeutic Category <span class="text-red-500">*</span></label>
-                <select id="therapeutic_category" name="therapeutic_category" class="mt-1 w-full rounded border-slate-300" required>
-                    <option value="">Select...</option>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-slate-700">Therapeutic Categories <span class="text-red-500">*</span></label>
+                <p class="text-xs text-slate-500 mt-1">Select one or more categories this product belongs to.</p>
+                @php
+                    $selectedCategories = old('categories', $product?->categories ?? array_filter([$product?->therapeutic_category]));
+                @endphp
+                <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     @foreach ($categories as $cat)
-                        <option value="{{ $cat }}" {{ oldOr($product, 'therapeutic_category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                        <label class="flex items-center gap-2 text-sm text-slate-700 rounded border border-slate-200 px-3 py-2 bg-white cursor-pointer hover:border-med-300">
+                            <input type="checkbox" name="categories[]" value="{{ $cat }}"
+                                   {{ in_array($cat, $selectedCategories ?? []) ? 'checked' : '' }}
+                                   class="category-checkbox rounded border-slate-300 text-med-600 focus:ring-med-500">
+                            {{ $cat }}
+                        </label>
                     @endforeach
-                </select>
+                </div>
+                @error('categories')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
-            <div>
-                <label for="subcategory" class="block text-sm font-medium text-slate-700">Subcategory <span class="text-red-500">*</span></label>
-                <select id="subcategory" name="subcategory" class="mt-1 w-full rounded border-slate-300" required>
-                    <option value="">Select a category first...</option>
-                </select>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-slate-700">Subcategories</label>
+                <p class="text-xs text-slate-500 mt-1">Optional — pick disease areas under each selected category. Products without a subcategory appear under "Other".</p>
+                @php
+                    $selectedSubcategories = old('subcategories', $product?->subcategories ?? ($product?->subcategory ? [$product->therapeutic_category . '|' . $product->subcategory] : []));
+                @endphp
+                <div id="subcategory-groups" class="mt-2 space-y-3"></div>
+                <p id="subcategory-empty" class="text-xs text-slate-400 mt-1">Select a category above to see its subcategories.</p>
                 @if (! empty($subcategoryMap))
                     <script type="application/json" id="subcategory-data">@json($subcategoryMap)</script>
                 @endif
+                <script type="application/json" id="subcategory-selected">@json($selectedSubcategories ?? [])</script>
             </div>
 
             <div>
@@ -470,31 +485,61 @@ function oldOr($product, $path, $default = '') {
         }
     }
 
-    function updateSubcategory() {
-        const cat = document.getElementById('therapeutic_category').value;
-        const subSelect = document.getElementById('subcategory');
-        const data = JSON.parse(document.getElementById('subcategory-data').textContent);
-        const selected = @json(oldOr($product, 'subcategory', ''));
+    let initialSubsApplied = false;
 
-        subSelect.innerHTML = '<option value="">Select...</option>';
-        if (data[cat]) {
-            data[cat].forEach(function (sub) {
-                const option = document.createElement('option');
-                option.value = sub;
-                option.textContent = sub;
-                if (sub === selected) {
-                    option.selected = true;
-                }
-                subSelect.appendChild(option);
-            });
+    function renderSubcategoryGroups() {
+        const data = JSON.parse(document.getElementById('subcategory-data').textContent);
+        const container = document.getElementById('subcategory-groups');
+        const checkedCats = Array.from(document.querySelectorAll('.category-checkbox:checked')).map(cb => cb.value);
+
+        const active = new Set(
+            Array.from(container.querySelectorAll('input[name="subcategories[]"]:checked')).map(i => i.value)
+        );
+        if (!initialSubsApplied) {
+            JSON.parse(document.getElementById('subcategory-selected').textContent).forEach(s => active.add(s));
         }
+
+        container.innerHTML = '';
+        checkedCats.forEach(function (cat) {
+            const subs = data[cat] || [];
+            if (!subs.length) return;
+
+            const group = document.createElement('div');
+            group.className = 'rounded border border-slate-200 bg-white p-3';
+            const heading = document.createElement('p');
+            heading.className = 'text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2';
+            heading.textContent = cat;
+            group.appendChild(heading);
+
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5';
+            subs.forEach(function (sub) {
+                const value = cat + '|' + sub;
+                const label = document.createElement('label');
+                label.className = 'flex items-center gap-2 text-sm text-slate-700 cursor-pointer';
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.name = 'subcategories[]';
+                input.value = value;
+                input.checked = active.has(value);
+                input.className = 'rounded border-slate-300 text-med-600 focus:ring-med-500';
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(sub));
+                grid.appendChild(label);
+            });
+            group.appendChild(grid);
+            container.appendChild(group);
+        });
+
+        document.getElementById('subcategory-empty').style.display = container.children.length ? 'none' : '';
+        initialSubsApplied = true;
     }
 
     function suggestInternalId() {
-        const cat = document.getElementById('therapeutic_category').value;
+        const first = document.querySelector('.category-checkbox:checked');
         const id = document.getElementById('internal_product_id');
-        if (cat && !id.dataset.touched) {
-            id.value = (cat.replace(/[^a-z]/gi, '').substring(0, 3).toUpperCase() || 'GEN') + '-';
+        if (first && !id.dataset.touched) {
+            id.value = (first.value.replace(/[^a-z]/gi, '').substring(0, 3).toUpperCase() || 'GEN') + '-';
         }
     }
 
@@ -510,11 +555,13 @@ function oldOr($product, $path, $default = '') {
     document.getElementById('brand_name').addEventListener('blur', suggestSlug);
     document.getElementById('strength').addEventListener('blur', suggestSlug);
     document.getElementById('url_slug').addEventListener('input', () => document.getElementById('url_slug').dataset.touched = '1');
-    document.getElementById('therapeutic_category').addEventListener('change', updateSubcategory);
-    document.getElementById('therapeutic_category').addEventListener('change', suggestInternalId);
+    document.querySelectorAll('.category-checkbox').forEach(cb => {
+        cb.addEventListener('change', renderSubcategoryGroups);
+        cb.addEventListener('change', suggestInternalId);
+    });
     document.getElementById('internal_product_id').addEventListener('input', () => document.getElementById('internal_product_id').dataset.touched = '1');
 
-    updateSubcategory();
+    renderSubcategoryGroups();
     updateRouteAdmin();
     updateDosageAdminRequired();
     updateSourceRequired();

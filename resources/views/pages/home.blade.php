@@ -29,7 +29,7 @@
             $firstCategoryProducts = $productsByCategory->get($defaultCategory) ?? collect();
             $defaultSubcategory = $firstCategory?->subcategories[0] ?? '';
             foreach ($firstCategory?->subcategories ?? [] as $sub) {
-                if ($firstCategoryProducts->contains(fn ($p) => ($p->subcategory ?: 'Other') === $sub)) {
+                if ($firstCategoryProducts->contains(fn ($p) => in_array($sub, $p->subcategoriesIn($defaultCategory)))) {
                     $defaultSubcategory = $sub;
                     break;
                 }
@@ -57,7 +57,7 @@
                                 $categoryProductsForDefault = $productsByCategory->get($category->name) ?? collect();
                                 $defaultSubForCategory = $category->subcategories[0] ?? '';
                                 foreach ($category->subcategories ?? [] as $sub) {
-                                    if ($categoryProductsForDefault->contains(fn ($p) => ($p->subcategory ?: 'Other') === $sub)) {
+                                    if ($categoryProductsForDefault->contains(fn ($p) => in_array($sub, $p->subcategoriesIn($category->name)))) {
                                         $defaultSubForCategory = $sub;
                                         break;
                                     }
@@ -82,7 +82,13 @@
                     @foreach ($categories as $category)
                         @php
                             $categoryProducts = $productsByCategory->get($category->name) ?? collect();
-                            $productsBySubcategory = $categoryProducts->groupBy(fn ($p) => $p->subcategory ?: 'Other');
+                            $productsBySubcategory = [];
+                            foreach ($categoryProducts as $p) {
+                                foreach ($p->subcategoriesIn($category->name) as $subName) {
+                                    $productsBySubcategory[$subName][] = $p;
+                                }
+                            }
+                            $productsBySubcategory = collect($productsBySubcategory)->map(fn ($items) => collect($items));
                         @endphp
                         <div x-show="activeCategory === '{{ $category->name }}' && menuOpen"
                              x-cloak

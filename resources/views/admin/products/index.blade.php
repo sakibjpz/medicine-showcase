@@ -25,7 +25,7 @@
                     <tr class="hover:bg-slate-50">
                         <td class="px-5 py-3 font-mono text-slate-500">{{ $product->internal_product_id }}</td>
                         <td class="px-5 py-3 font-medium text-slate-800">{{ $product->brand_name }}</td>
-                        <td class="px-5 py-3">{{ $product->therapeutic_category }}</td>
+                        <td class="px-5 py-3">{{ implode(', ', $product->categoryList()) }}</td>
                         <td class="px-5 py-3 text-slate-500">{{ $product->sort_order }}</td>
                         <td class="px-5 py-3">{{ $product->manufacturer?->name }}</td>
                         <td class="px-5 py-3">

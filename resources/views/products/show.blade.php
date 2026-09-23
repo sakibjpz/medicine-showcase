@@ -10,7 +10,7 @@
 <section class="relative text-white py-16 lg:py-24 overflow-hidden" @if ($bannerImage) style="background-image: url('{{ $bannerImage }}'); background-size: cover; background-position: center;" @endif>
     <div class="absolute inset-0 bg-navy-900/80"></div>
     <div class="container-site relative z-10">
-        <p class="text-med-100 text-sm font-semibold uppercase tracking-wider mb-2">{{ $product->therapeutic_category }} &middot; {{ $product->dosage_form }}</p>
+        <p class="text-med-100 text-sm font-semibold uppercase tracking-wider mb-2">{{ implode(' · ', $product->categoryList()) }} &middot; {{ $product->dosage_form }}</p>
         <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight break-words">{{ $product->brand_name }}</h1>
         <p class="text-base sm:text-lg md:text-xl text-med-100 mt-3 break-words">{{ $product->generic_inn_name }} &middot; {{ $product->strength }}</p>
     </div>
@@ -115,8 +115,8 @@
                     <div><dt class="font-medium text-slate-500">Brand Name</dt><dd class="text-slate-800 break-words">{{ $product->brand_name }}</dd></div>
                     <div><dt class="font-medium text-slate-500">Generic / INN</dt><dd class="text-slate-800 break-words">{{ $product->generic_inn_name }}</dd></div>
                     <div><dt class="font-medium text-slate-500">Other Name</dt><dd class="text-slate-800 break-words">{{ $product->other_name ?: 'N/A' }}</dd></div>
-                    <div><dt class="font-medium text-slate-500">Therapeutic Category</dt><dd class="text-slate-800 break-words">{{ $product->therapeutic_category }}</dd></div>
-                    <div><dt class="font-medium text-slate-500">Subcategory</dt><dd class="text-slate-800 break-words">{{ $product->subcategory ?: 'N/A' }}</dd></div>
+                    <div><dt class="font-medium text-slate-500">Therapeutic Category</dt><dd class="text-slate-800 break-words">{{ implode(', ', $product->categoryList()) }}</dd></div>
+                    <div><dt class="font-medium text-slate-500">Subcategory</dt><dd class="text-slate-800 break-words">{{ implode(', ', $product->subcategoryNames()) ?: 'N/A' }}</dd></div>
                     <div><dt class="font-medium text-slate-500">Dosage Form</dt><dd class="text-slate-800 break-words">{{ $product->dosage_form }}</dd></div>
                     <div><dt class="font-medium text-slate-500">Strength</dt><dd class="text-slate-800 break-words">{{ $product->strength }}</dd></div>
                     <div><dt class="font-medium text-slate-500">Pack Size</dt><dd class="text-slate-800 break-words">{{ $product->pack_size_spec ?: 'N/A' }}</dd></div>

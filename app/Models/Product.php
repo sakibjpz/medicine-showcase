@@ -16,7 +16,9 @@ class Product extends Model
         'generic_inn_name',
         'other_name',
         'therapeutic_category',
+        'categories',
         'subcategory',
+        'subcategories',
         'dosage_form',
         'strength',
         'pack_size_spec',
@@ -59,6 +61,8 @@ class Product extends Model
         return [
             'product_images' => 'array',
             'product_image_labels' => 'array',
+            'categories' => 'array',
+            'subcategories' => 'array',
             'country_market' => 'array',
             'has_known_interactions' => 'boolean',
             'has_precautions' => 'boolean',
@@ -112,5 +116,49 @@ class Product extends Model
     public function scopePublished($query)
     {
         return $query->whereIn('content_status', ['Approved', 'Published']);
+    }
+
+    /** All categories this product belongs to (falls back to primary). */
+    public function categoryList(): array
+    {
+        $cats = $this->categories;
+
+        return ! empty($cats) ? array_values($cats) : array_values(array_filter([$this->therapeutic_category]));
+    }
+
+    /** Qualified "Category|Subcategory" pairs (falls back to primary). */
+    public function subcategoryPairs(): array
+    {
+        $pairs = $this->subcategories;
+        if (! empty($pairs)) {
+            return array_values($pairs);
+        }
+
+        return ($this->subcategory && $this->therapeutic_category)
+            ? [$this->therapeutic_category . '|' . $this->subcategory]
+            : [];
+    }
+
+    /** Subcategory names within a given category; ['Other'] when none. */
+    public function subcategoriesIn(string $category): array
+    {
+        $prefix = $category . '|';
+        $subs = collect($this->subcategoryPairs())
+            ->filter(fn ($p) => str_starts_with($p, $prefix))
+            ->map(fn ($p) => substr($p, strlen($prefix)))
+            ->values()
+            ->all();
+
+        return $subs ?: ['Other'];
+    }
+
+    /** Unique subcategory names across all categories. */
+    public function subcategoryNames(): array
+    {
+        return collect($this->subcategoryPairs())
+            ->map(fn ($p) => str_contains($p, '|') ? explode('|', $p, 2)[1] : $p)
+            ->unique()
+            ->values()
+            ->all();
     }
 }
