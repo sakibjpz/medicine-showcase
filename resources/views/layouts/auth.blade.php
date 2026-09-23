@@ -8,6 +8,9 @@
     <title>@yield('title', 'Authentication - MedSource')</title>
     <meta name="description" content="Secure access to the MedSource professional portal.">
 
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 

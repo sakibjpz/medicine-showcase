@@ -8,6 +8,9 @@
     <title>@yield('title', 'MedSource – Global Medical Platforms and Centers')</title>
     <meta name="description" content="@yield('meta_description', 'MedSource is a professional-grade medical information portal for healthcare professionals, pharmacists, and informed patients.')">
 
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 

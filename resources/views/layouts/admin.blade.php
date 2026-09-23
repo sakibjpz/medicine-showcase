@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'Admin' }} | MedSource</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased">
