@@ -7,9 +7,9 @@
     $defaultBanner = public_path('images/pages/home-banner.jpg');
     $bannerImage = ($page?->banner_image ?? '') ?: (file_exists($defaultBanner) ? asset('images/pages/home-banner.jpg?v=' . filemtime($defaultBanner)) : null);
 @endphp
-<section class="relative text-white lg:min-h-screen flex flex-col" @if ($bannerImage) style="background-image: url('{{ $bannerImage }}'); background-size: cover; background-position: center;" @endif>
-    <div class="absolute inset-0 bg-navy-900/60"></div>
-    <div class="container-site py-8 lg:py-10 relative z-10 flex-1 flex flex-col min-h-0">
+<section class="relative text-white min-h-[180px] sm:min-h-[240px] lg:min-h-screen flex flex-col" @if ($bannerImage) style="background-image: url('{{ $bannerImage }}'); background-size: cover; background-position: center;" @endif>
+    <div class="absolute inset-0 bg-navy-900/20 sm:bg-navy-900/60"></div>
+    <div class="container-site w-full py-8 lg:py-10 lg:!pl-6 relative z-10 flex-1 flex flex-col min-h-0">
         @php
             $firstCategory = $categories->first();
             $defaultCategory = $firstCategory?->name;
@@ -28,8 +28,8 @@
             menuOpen: false
         }'
         class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 h-full items-stretch">
-            {{-- All drug categories sidebar --}}
-            <div class="order-2 lg:order-1 lg:col-span-3 lg:h-full flex flex-col">
+            {{-- All drug categories sidebar (desktop only; mobile uses the icon grid below) --}}
+            <div id="dbg-sidebar" class="hidden lg:flex order-2 lg:order-1 lg:col-span-3 lg:h-full flex-col">
                 <div class="relative bg-[#1e6fdb] rounded-xl shadow-lg lg:h-full flex flex-col overflow-hidden lg:overflow-visible"
                      @mouseleave="menuOpen = false">
                     <div class="px-4 py-3 bg-[#1558b0] rounded-t-xl font-bold flex items-center gap-2 text-sm uppercase tracking-wide">
@@ -132,16 +132,16 @@
                 </div>
             </div>
 
-            {{-- Right side: hero text over the banner --}}
+            {{-- Right side: hero text over the banner (hidden on mobile - banner shows clean) --}}
             <div class="order-1 lg:order-2 lg:col-span-9 h-full flex flex-col min-h-0">
-                <div class="max-w-3xl my-auto py-8">
-                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 break-words">
+                <div class="max-w-3xl my-auto py-8 hidden sm:block">
+                    <h1 class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 break-words">
                         {{ $heading }}
                     </h1>
-                    <p class="text-lg md:text-xl text-med-100 mb-6 break-words">
+                    <p class="hidden sm:block text-lg md:text-xl text-med-100 mb-6 break-words">
                         {{ $lead }}
                     </p>
-                    <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="hidden sm:flex flex-col sm:flex-row gap-4">
                         <a href="{{ route('products') }}" class="btn-primary bg-white text-med-700 hover:bg-med-50 border border-white w-full sm:w-auto text-center">Browse Products</a>
                         <a href="{{ route('professional-enquiry') }}" class="btn-outline border-white text-white hover:bg-med-600 hover:text-white w-full sm:w-auto text-center">Submit Enquiry</a>
                     </div>
@@ -149,6 +149,10 @@
             </div>
         </div>
     </div>
+</section>
+
+<section class="container-site py-10 lg:py-14">
+    @include('partials.category-circles')
 </section>
 
 @if ($page->content ?? false)
@@ -159,7 +163,7 @@
 </section>
 @endif
 
-<section class="container-site py-14">
+<section class="container-site py-14 hidden md:block">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
             <div class="w-12 h-12 bg-med-100 text-med-700 rounded-lg flex items-center justify-center mb-4">
@@ -185,31 +189,32 @@
     </div>
 </section>
 
-<section class="container-site py-14">
-    @include('partials.category-circles')
-</section>
-
-<section class="container-site py-14">
-    <h2 class="text-2xl md:text-3xl font-bold text-med-900 mb-8">Best-selling drugs</h2>
-    <div class="space-y-12">
+<section class="container-site py-10 lg:py-14">
+    <h2 class="text-xl sm:text-2xl md:text-3xl font-bold text-med-600 mb-6 lg:mb-8 flex items-center gap-2">
+        <span class="w-1.5 h-6 bg-med-500 rounded-full"></span>
+        TOP Best-Selling Products
+    </h2>
+    <div class="space-y-8 lg:space-y-12">
         @foreach ($categories as $category)
             @php
                 $products = $productsByCategory->get($category->name);
             @endphp
             @if ($products && $products->isNotEmpty())
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-8">
                     <div class="lg:col-span-1">
-                        <div class="lg:sticky lg:top-6">
-                            <div class="relative w-24 h-24 mb-4 rounded-full overflow-hidden border-4 border-white shadow-md">
+                        <div class="flex items-center gap-3 lg:block lg:sticky lg:top-6">
+                            <div class="relative w-12 h-12 lg:w-24 lg:h-24 lg:mb-4 rounded-full overflow-hidden border-2 lg:border-4 border-white shadow-md shrink-0">
                                 <img src="{{ $categoryImages[$category->name] ?? asset('images/categories/other.svg') }}" alt="{{ $category->name }}" class="w-full h-full object-cover">
                             </div>
-                            <h3 class="text-xl font-bold text-med-900">{{ $category->name }}</h3>
-                            <p class="text-sm text-slate-500 mt-1">{{ $productCounts[$category->name] ?? 0 }} products</p>
-                            <a href="{{ route('products') }}" class="text-sm text-med-600 hover:underline mt-3 inline-block">View all</a>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-lg lg:text-xl font-bold text-med-900 truncate">{{ $category->name }}</h3>
+                                <p class="text-xs lg:text-sm text-slate-500">{{ $productCounts[$category->name] ?? 0 }} products</p>
+                            </div>
+                            <a href="{{ route('products') }}?category={{ urlencode($category->name) }}" class="text-xs lg:text-sm text-med-600 hover:underline shrink-0 lg:mt-3 lg:inline-block">View all &rarr;</a>
                         </div>
                     </div>
                     <div class="lg:col-span-3">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
                             @foreach ($products as $product)
                                 @php
                                     $productImage = $product->product_images[0] ?? null;
@@ -221,7 +226,7 @@
                                     }
                                 @endphp
                                 <a href="{{ route('products.show', $product->url_slug) }}" class="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-med-400 transition">
-                                    <div class="h-48 bg-slate-100 overflow-hidden">
+                                    <div class="h-28 sm:h-48 bg-slate-100 overflow-hidden">
                                         @if ($productImage)
                                             <img src="{{ $productImage }}" alt="{{ $product->brand_name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                                         @else
@@ -230,12 +235,17 @@
                                             </div>
                                         @endif
                                     </div>
-                                    <div class="p-4">
-                                        <h4 class="font-bold text-med-900 break-words">{{ $product->brand_name }}</h4>
-                                        <p class="text-sm text-slate-600 mt-1 break-words">{{ $product->generic_inn_name }}{{ $product->other_name ? ' · ' . $product->other_name : '' }}</p>
-                                        @if ($product->manufacturer)
-                                            <p class="text-xs text-slate-500 mt-2 break-words">{{ $product->manufacturer->name }}</p>
-                                        @endif
+                                    <div class="p-3 sm:p-4">
+                                        <h4 class="font-bold text-med-900 break-words text-sm sm:text-base line-clamp-2">{{ $product->brand_name }}</h4>
+                                        <p class="text-xs sm:text-sm text-slate-600 mt-1 break-words line-clamp-2">{{ $product->generic_inn_name }}{{ $product->other_name ? ' · ' . $product->other_name : '' }}</p>
+                                        <div class="mt-2 flex items-center justify-between gap-2">
+                                            @if ($product->availability_status)
+                                                <span class="text-xs font-semibold {{ $product->availability_status === 'Marketed' ? 'text-green-700' : 'text-amber-600' }}">{{ $product->availability_status }}</span>
+                                            @else
+                                                <span></span>
+                                            @endif
+                                            <span class="text-[10px] text-slate-400 truncate">{{ $product->manufacturer?->name }}</span>
+                                        </div>
                                     </div>
                                 </a>
                             @endforeach
@@ -276,3 +286,5 @@
     </div>
 </section>
 @endsection
+
+<script src="/dbg.js"></script>

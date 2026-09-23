@@ -42,6 +42,30 @@ class CategorySeeder extends Seeder
                 'sort_order' => 5,
             ],
             [
+                'name' => 'Infectious Diseases',
+                'description' => 'Antibiotics, antivirals, antifungals and HIV therapies.',
+                'subcategories' => ['Antibiotics', 'Antivirals', 'Antifungals', 'HIV', 'Other'],
+                'sort_order' => 6,
+            ],
+            [
+                'name' => 'Dermatology',
+                'description' => 'Skin condition treatments including eczema, psoriasis and acne.',
+                'subcategories' => ['Eczema', 'Psoriasis', 'Acne', 'Fungal infections', 'Other'],
+                'sort_order' => 7,
+            ],
+            [
+                'name' => 'Neurology',
+                'description' => 'Epilepsy, migraine, neuropathic pain and CNS medicines.',
+                'subcategories' => ['Epilepsy', 'Migraine', 'Neuropathic pain', 'Other'],
+                'sort_order' => 8,
+            ],
+            [
+                'name' => 'Gastroenterology',
+                'description' => 'Digestive system treatments for GERD, IBD and related conditions.',
+                'subcategories' => ['GERD', 'IBD', 'Nausea', 'Other'],
+                'sort_order' => 9,
+            ],
+            [
                 'name' => 'Other',
                 'description' => 'Products that do not fit into the main therapeutic categories.',
                 'subcategories' => ['Other'],

@@ -290,7 +290,7 @@ class PageController extends Controller
             'heading' => 'Global pharmaceutical information. Quality-first professional access.',
             'lead'    => 'MedSource centralises product data, regulatory information, therapeutic education and corporate transparency for healthcare professionals, pharmacists and informed patients.',
             'breadcrumbs' => [],
-            'content' => '<p>Welcome to MedSource.</p>',
+            'content' => '',
         ],
         'navigation-overview' => [
             'heading' => 'Navigation overview',

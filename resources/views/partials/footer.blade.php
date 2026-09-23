@@ -1,10 +1,10 @@
 <footer class="bg-navy-900 text-slate-200 border-t border-navy-800">
 
     <div class="container-site py-12 lg:py-16">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
 
             {{-- Brand --}}
-            <div class="sm:col-span-2 lg:col-span-1">
+            <div class="col-span-2 lg:col-span-1">
                 <a href="{{ route('home') }}" class="inline-block mb-4 bg-white rounded-lg p-2">
                     <img src="{{ asset('images/logo.png') }}" alt="MedSource" class="max-h-8 w-auto">
                 </a>
@@ -47,7 +47,7 @@
             </div>
 
             {{-- Contact --}}
-            <div class="sm:col-span-2 lg:col-span-1 text-center lg:text-right" aria-label="Contact us">
+            <div class="text-center lg:text-right" aria-label="Contact us">
                 <h3 class="text-white font-semibold mb-4 uppercase text-sm tracking-wider">Contact us</h3>
                 <div class="space-y-3 text-sm">
                     <div>

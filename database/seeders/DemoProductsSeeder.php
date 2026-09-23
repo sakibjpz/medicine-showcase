@@ -23,10 +23,14 @@ class DemoProductsSeeder extends Seeder
         $categoryMeta = [
             'Cardiovascular' => ['prefix' => 'CARD', 'sub' => 'Dyslipidaemia', 'colors' => ['#1e3a8a', '#3b82f6']],
             'Diabetes' => ['prefix' => 'DIA', 'sub' => 'Type 2 diabetes', 'colors' => ['#14532d', '#22c55e']],
-            'Hepatology' => ['prefix' => 'HEP', 'sub' => 'Chronic hepatitis', 'colors' => ['#065f46', '#14b8a6']],
+            'Hepatology' => ['prefix' => 'HEP', 'sub' => 'Hepatitis C', 'colors' => ['#065f46', '#14b8a6']],
             'Oncology' => ['prefix' => 'ONC', 'sub' => 'Solid tumours', 'colors' => ['#4c1d95', '#a855f7']],
-            'Respiratory' => ['prefix' => 'RESP', 'sub' => 'Asthma / COPD', 'colors' => ['#0e7490', '#06b6d4']],
-            'Other' => ['prefix' => 'OTH', 'sub' => 'General medicine', 'colors' => ['#334155', '#64748b']],
+            'Respiratory' => ['prefix' => 'RESP', 'sub' => 'Asthma', 'colors' => ['#0e7490', '#06b6d4']],
+            'Infectious Diseases' => ['prefix' => 'INF', 'sub' => 'Antibiotics', 'colors' => ['#7f1d1d', '#ef4444']],
+            'Dermatology' => ['prefix' => 'DERM', 'sub' => 'Eczema', 'colors' => ['#7c2d12', '#f97316']],
+            'Neurology' => ['prefix' => 'NEUR', 'sub' => 'Epilepsy', 'colors' => ['#312e81', '#8b5cf6']],
+            'Gastroenterology' => ['prefix' => 'GAST', 'sub' => 'GERD', 'colors' => ['#713f12', '#eab308']],
+            'Other' => ['prefix' => 'OTH', 'sub' => 'Other', 'colors' => ['#334155', '#64748b']],
         ];
 
         $productSpecs = [
@@ -70,6 +74,38 @@ class DemoProductsSeeder extends Seeder
                 ['Nasonex', 'mometasone', '50 mcg', 'Nasal spray'],
                 ['Singulair', 'montelukast', '10 mg', 'Tablet'],
             ],
+            'Infectious Diseases' => [
+                ['Zithromax', 'azithromycin', '500 mg', 'Tablet'],
+                ['Cipro', 'ciprofloxacin', '500 mg', 'Tablet'],
+                ['Diflucan', 'fluconazole', '150 mg', 'Capsule'],
+                ['Valtrex', 'valacyclovir', '500 mg', 'Tablet'],
+                ['Flagyl', 'metronidazole', '400 mg', 'Tablet'],
+                ['Tamiflu', 'oseltamivir', '75 mg', 'Capsule'],
+            ],
+            'Dermatology' => [
+                ['Elidel', 'pimecrolimus', '1% cream', 'Cream'],
+                ['Dovonex', 'calcipotriol', '50 mcg/g', 'Ointment'],
+                ['Differin', 'adapalene', '0.1% gel', 'Gel'],
+                ['Lamisil', 'terbinafine', '250 mg', 'Tablet'],
+                ['Accutane', 'isotretinoin', '20 mg', 'Capsule'],
+                ['Elocon', 'mometasone furoate', '0.1% cream', 'Cream'],
+            ],
+            'Neurology' => [
+                ['Keppra', 'levetiracetam', '500 mg', 'Tablet'],
+                ['Lamictal', 'lamotrigine', '100 mg', 'Tablet'],
+                ['Topamax', 'topiramate', '50 mg', 'Tablet'],
+                ['Neurontin', 'gabapentin', '300 mg', 'Capsule'],
+                ['Imitrex', 'sumatriptan', '50 mg', 'Tablet'],
+                ['Tegretol', 'carbamazepine', '200 mg', 'Tablet'],
+            ],
+            'Gastroenterology' => [
+                ['Pentasa', 'mesalazine', '500 mg', 'Tablet'],
+                ['Motilium', 'domperidone', '10 mg', 'Tablet'],
+                ['Zofran', 'ondansetron', '4 mg', 'Tablet'],
+                ['Creon', 'pancrelipase', '25000 units', 'Capsule'],
+                ['Prevacid', 'lansoprazole', '30 mg', 'Capsule'],
+                ['Imodium', 'loperamide', '2 mg', 'Capsule'],
+            ],
             'Other' => [
                 ['Panadol', 'paracetamol', '500 mg', 'Tablet'],
                 ['Brufen', 'ibuprofen', '400 mg', 'Tablet'],
@@ -79,6 +115,8 @@ class DemoProductsSeeder extends Seeder
                 ['Lyrica', 'pregabalin', '75 mg', 'Capsule'],
             ],
         ];
+
+        $downloadImages = filter_var(env('SEEDER_DOWNLOAD_IMAGES', false), FILTER_VALIDATE_BOOLEAN);
 
         $index = 0;
         foreach ($productSpecs as $category => $items) {
@@ -135,7 +173,9 @@ class DemoProductsSeeder extends Seeder
                     ]
                 );
 
-                $this->writeProductImage($product);
+                if ($downloadImages) {
+                    $this->writeProductImage($product);
+                }
             }
         }
     }

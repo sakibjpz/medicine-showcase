@@ -2,7 +2,6 @@
     megaOpen: false,
     activeColumn: 'products',
     mobileOpen: false,
-    mobileSearchOpen: false,
     openMega(col) {
         this.megaOpen = true;
         this.activeColumn = col;
@@ -11,10 +10,9 @@
         this.megaOpen = false;
         this.activeColumn = 'products';
     },
-    toggleMobile() { this.mobileOpen = !this.mobileOpen; },
-    toggleMobileSearch() { this.mobileSearchOpen = !this.mobileSearchOpen; }
+    toggleMobile() { this.mobileOpen = !this.mobileOpen; }
 }"
-    @keydown.escape.window="closeMega(); mobileOpen = false; mobileSearchOpen = false"
+    @keydown.escape.window="closeMega(); mobileOpen = false"
     class="sticky top-0 z-50 bg-white shadow-header">
 
     {{-- Pre-header --}}
@@ -47,11 +45,24 @@
     </div>
 
     {{-- Brand / search / CTA row --}}
-    <div class="container-site py-4">
+    <div class="bg-med-600 md:bg-white">
+    <div class="container-site py-3 md:py-4">
         <div class="flex items-center justify-between gap-4 lg:gap-8">
+            {{-- Mobile hamburger (left) --}}
+            <div class="flex items-center gap-2 md:hidden">
+                <button @click="toggleMobile" class="p-2 rounded-md text-white hover:bg-med-700" :aria-expanded="mobileOpen" aria-controls="mobile-menu" aria-label="Toggle menu">
+                    <svg x-show="!mobileOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <svg x-show="mobileOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display: none;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
             {{-- Brand --}}
-            <a href="{{ route('home') }}" class="flex items-center gap-3 shrink-0" aria-label="MedSource Home">
-                <img src="{{ asset('images/logo.png') }}" alt="MedSource" class="max-h-10 w-auto max-w-[140px] sm:max-w-[180px] lg:max-w-[220px]">
+            <a href="{{ route('home') }}" class="flex items-center gap-3 shrink-0 flex-1 md:flex-initial justify-center md:justify-start" aria-label="MedSource Home">
+                <img src="{{ asset('images/logo.png') }}" alt="MedSource" class="max-h-10 w-auto max-w-[140px] sm:max-w-[180px] lg:max-w-[220px] bg-white rounded-md px-2 py-1 md:bg-transparent md:rounded-none md:px-0 md:py-0">
             </a>
 
             {{-- Search --}}
@@ -146,26 +157,22 @@
                 Professional Enquiry
             </a>
 
-            {{-- Mobile controls --}}
+            {{-- Mobile account icon (right) --}}
             <div class="flex items-center gap-2 md:hidden">
-                <button @click="toggleMobileSearch" class="p-2 rounded-md text-slate-600 hover:bg-slate-100" aria-label="Toggle search" :aria-expanded="mobileSearchOpen">
+                <a href="{{ auth()->check() ? route('dashboard') : route('login') }}" class="p-2 rounded-md text-white hover:bg-med-700" aria-label="Account">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                </button>
-                <button @click="toggleMobile" class="p-2 rounded-md text-slate-600 hover:bg-slate-100" :aria-expanded="mobileOpen" aria-controls="mobile-menu" aria-label="Toggle menu">
-                    <svg x-show="!mobileOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                    <svg x-show="mobileOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display: none;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+                </a>
             </div>
         </div>
 
-        {{-- Mobile search --}}
-        <div x-show="mobileSearchOpen" class="md:hidden mt-3 relative" style="display: none;"
+        </div>
+    </div>
+
+    {{-- Mobile search strip (always visible on small screens) --}}
+    <div class="container-site md:hidden">
+        <div class="mt-2 mb-3 relative"
              x-data="{
                 activeIndex: -1,
                     query: {{ json_encode(request('q')) }},
@@ -213,15 +220,22 @@
              @keydown.escape.window="open = false">
             <form action="{{ route('search') }}" method="GET" role="search" class="relative" x-ref="searchForm" @submit="open = false">
                 <label for="mobile-search" class="sr-only">Search products, pages, manufacturers and more</label>
-                <input id="mobile-search" name="q" type="search" x-model="query"
-                       @input.debounce.300ms="fetchSuggestions" @focus="if (query.length >= 2) fetchSuggestions()"
-                       class="w-full px-4 py-2 rounded-full border border-slate-300 bg-slate-50"
-                       placeholder="Search products, pages, manufacturers and more"
-                       autocomplete="off"
-                       @keydown.arrow-down.prevent="next"
-                       @keydown.arrow-up.prevent="prev"
-                       @keydown.enter.prevent="select"
-                       @keydown.escape="open = false; activeIndex = -1;">
+                <div class="flex rounded-lg overflow-hidden border border-slate-300 bg-white focus-within:ring-2 focus-within:ring-med-500">
+                    <input id="mobile-search" name="q" type="search" x-model="query"
+                           @input.debounce.300ms="fetchSuggestions" @focus="if (query.length >= 2) fetchSuggestions()"
+                           class="flex-1 min-w-0 px-4 py-2.5 border-0 bg-transparent text-slate-800 placeholder-slate-400 focus:ring-0 focus:outline-none"
+                           placeholder="Search products, pages, manufacturers and more"
+                           autocomplete="off"
+                           @keydown.arrow-down.prevent="next"
+                           @keydown.arrow-up.prevent="prev"
+                           @keydown.enter.prevent="select"
+                           @keydown.escape="open = false; activeIndex = -1;">
+                    <button type="submit" class="bg-med-600 hover:bg-med-700 text-white px-4 flex items-center justify-center shrink-0" aria-label="Search">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </button>
+                </div>
 
                 <div x-show="open" x-transition class="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg border border-slate-200 shadow-lg z-50 overflow-hidden" @click.away="open = false" role="listbox" aria-label="Search suggestions">
                     <ul class="max-h-72 overflow-y-auto divide-y divide-slate-100">
