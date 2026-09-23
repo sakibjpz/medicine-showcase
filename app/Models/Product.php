@@ -20,6 +20,7 @@ class Product extends Model
         'dosage_form',
         'strength',
         'pack_size_spec',
+        'sort_order',
         'route_admin',
         'manufacturer_id',
         'country_of_origin',
@@ -29,6 +30,7 @@ class Product extends Model
         'full_description',
         'approved_indication',
         'product_images',
+        'product_image_labels',
         'banner_image',
         'image_alt_text',
         'dosage_admin_text',
@@ -56,6 +58,7 @@ class Product extends Model
     {
         return [
             'product_images' => 'array',
+            'product_image_labels' => 'array',
             'country_market' => 'array',
             'has_known_interactions' => 'boolean',
             'has_precautions' => 'boolean',

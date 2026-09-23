@@ -23,21 +23,46 @@
         <aside class="lg:col-span-1">
             @php
                 $localImage = public_path('images/products/' . $product->url_slug . '.jpg');
-                $storedImage = $product->product_images[0] ?? null;
-
-                if (! empty($storedImage)) {
-                    if (! str_starts_with($storedImage, 'http')) {
-                        $storedImage = asset($storedImage);
-                    }
-                    $primaryImage = $storedImage;
-                } elseif (file_exists($localImage)) {
-                    $primaryImage = asset('images/products/' . $product->url_slug . '.jpg');
-                } else {
-                    $primaryImage = asset('images/products/placeholder.svg');
+                $images = collect($product->product_images ?? [])
+                    ->filter()
+                    ->map(fn ($img) => str_starts_with($img, 'http') ? $img : asset($img))
+                    ->values();
+                if ($images->isEmpty()) {
+                    $images = collect([file_exists($localImage)
+                        ? asset('images/products/' . $product->url_slug . '.jpg')
+                        : asset('images/products/placeholder.svg')]);
                 }
+                $imageLabels = $product->product_image_labels ?? [];
             @endphp
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-                <img src="{{ $primaryImage }}" alt="{{ $product->image_alt_text ?? $product->brand_name }}" class="rounded-lg w-full h-48 sm:h-64 object-cover">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4"
+                 x-data="{ active: 0, images: {{ Js::from($images) }} }">
+                <a :href="images[active]" target="_blank" class="block" title="View full image">
+                    @foreach ($images as $i => $img)
+                        <img src="{{ $img }}" alt="{{ $product->image_alt_text ?? $product->brand_name }}"
+                             x-show="active === {{ $i }}" @if ($i > 0) x-cloak @endif
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0"
+                             x-transition:enter-end="opacity-100"
+                             class="rounded-lg w-full h-48 sm:h-64 lg:h-72 object-contain bg-slate-50">
+                    @endforeach
+                </a>
+                @foreach ($images as $i => $img)
+                    @if (!empty($imageLabels[$i]))
+                        <p x-show="active === {{ $i }}" @if ($i > 0) x-cloak @endif class="mt-2 text-center text-xs font-medium text-slate-500">{{ $imageLabels[$i] }}</p>
+                    @endif
+                @endforeach
+                @if ($images->count() > 1)
+                    <div class="mt-3 grid grid-cols-4 sm:grid-cols-5 gap-2">
+                        @foreach ($images as $i => $img)
+                            <button type="button" @click="active = {{ $i }}"
+                                    :class="active === {{ $i }} ? 'ring-2 ring-med-500 border-med-400' : 'border-slate-200 hover:border-med-300'"
+                                    class="rounded-lg border overflow-hidden bg-slate-50 focus:outline-none transition"
+                                    aria-label="View image {{ $i + 1 }}">
+                                <img src="{{ $img }}" alt="" class="w-full h-14 sm:h-16 object-contain">
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
             <div class="mt-6 space-y-3">

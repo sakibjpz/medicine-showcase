@@ -117,6 +117,13 @@ function oldOr($product, $path, $default = '') {
             </div>
 
             <div>
+                <label for="sort_order" class="block text-sm font-medium text-slate-700">Display Order</label>
+                <input type="number" id="sort_order" name="sort_order" value="{{ oldOr($product, 'sort_order', 0) }}" min="0" max="9999"
+                       class="mt-1 w-full rounded border-slate-300" placeholder="0">
+                <p class="text-xs text-slate-500 mt-1">Lower numbers show first in product listings. Same number = alphabetical.</p>
+            </div>
+
+            <div>
                 <label for="route_admin" class="block text-sm font-medium text-slate-700">Route of Administration</label>
                 <select id="route_admin" name="route_admin" class="mt-1 w-full rounded border-slate-300">
                     <option value="">Select...</option>
@@ -187,12 +194,24 @@ function oldOr($product, $path, $default = '') {
 
                 @if ($product && ! empty($product->product_images))
                     <div class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        @foreach ($product->product_images as $img)
-                            <a href="{{ $img }}" target="_blank" class="block rounded border border-slate-200 overflow-hidden">
-                                <img src="{{ $img }}" alt="" class="w-full h-24 object-cover">
-                            </a>
+                        @foreach ($product->product_images as $i => $img)
+                            <div class="rounded border border-slate-200 overflow-hidden bg-white">
+                                <a href="{{ $img }}" target="_blank" class="block">
+                                    <img src="{{ $img }}" alt="" class="w-full h-24 object-cover">
+                                </a>
+                                <div class="p-2 space-y-1.5">
+                                    <input type="text" name="image_labels[{{ $i }}]" value="{{ $product->product_image_labels[$i] ?? '' }}"
+                                           placeholder="Label (e.g. 250 ml)" maxlength="100"
+                                           class="w-full rounded border-slate-300 text-xs px-2 py-1">
+                                    <label class="flex items-center gap-1.5 text-xs text-red-600">
+                                        <input type="checkbox" name="remove_images[]" value="{{ $i }}" class="rounded border-slate-300 text-red-600 focus:ring-red-500">
+                                        Remove
+                                    </label>
+                                </div>
+                            </div>
                         @endforeach
                     </div>
+                    <p class="text-xs text-slate-500 mt-2">Labels appear under the image on the product page (e.g. 250 ml, 500 ml). Tick "Remove" and save to delete an image.</p>
                 @endif
             </div>
 

@@ -489,6 +489,7 @@ class PageController extends Controller
 
         $productsByCategory = Product::with('manufacturer')
             ->whereIn('content_status', ['Approved', 'Published'])
+            ->orderBy('sort_order')
             ->orderBy('brand_name')
             ->get()
             ->groupBy('therapeutic_category');
@@ -529,7 +530,7 @@ class PageController extends Controller
         if ($page->slug === 'therapeutic-areas') {
             $categories = Category::active()->orderBy('sort_order')->orderBy('name')->get();
 
-            $products = Product::published()->orderBy('brand_name')->get();
+            $products = Product::published()->orderBy('sort_order')->orderBy('brand_name')->get();
 
             $viewData['categories'] = $categories;
             $viewData['productCounts'] = Product::selectRaw('therapeutic_category, COUNT(*) as count')
@@ -543,7 +544,7 @@ class PageController extends Controller
         }
 
         if ($page->slug === 'products') {
-            $productsQuery = Product::published()->orderBy('brand_name');
+            $productsQuery = Product::published()->orderBy('sort_order')->orderBy('brand_name');
 
             if ($request->filled('category')) {
                 $productsQuery->where('therapeutic_category', $request->input('category'));

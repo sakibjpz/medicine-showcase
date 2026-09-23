@@ -14,6 +14,7 @@
                     <th class="px-5 py-3 font-semibold">Internal ID</th>
                     <th class="px-5 py-3 font-semibold">Brand</th>
                     <th class="px-5 py-3 font-semibold">Category</th>
+                    <th class="px-5 py-3 font-semibold">Order</th>
                     <th class="px-5 py-3 font-semibold">Manufacturer</th>
                     <th class="px-5 py-3 font-semibold">Status</th>
                     <th class="px-5 py-3 font-semibold text-right">Actions</th>
@@ -25,6 +26,7 @@
                         <td class="px-5 py-3 font-mono text-slate-500">{{ $product->internal_product_id }}</td>
                         <td class="px-5 py-3 font-medium text-slate-800">{{ $product->brand_name }}</td>
                         <td class="px-5 py-3">{{ $product->therapeutic_category }}</td>
+                        <td class="px-5 py-3 text-slate-500">{{ $product->sort_order }}</td>
                         <td class="px-5 py-3">{{ $product->manufacturer?->name }}</td>
                         <td class="px-5 py-3">
                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
@@ -46,7 +48,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-5 py-6 text-center text-slate-500">No products found.</td>
+                        <td colspan="7" class="px-5 py-6 text-center text-slate-500">No products found.</td>
                     </tr>
                 @endforelse
             </tbody>

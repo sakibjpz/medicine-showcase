@@ -48,7 +48,9 @@ class AdminProductController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        $input['product_images'] = $this->storeImages($request, null);
+        $resolved = $this->resolveProductImages($request, null);
+        $input['product_images'] = $resolved['images'];
+        $input['product_image_labels'] = $resolved['labels'];
         $input['banner_image'] = $this->bannerImage($request, null);
 
         if (! $isDraft && empty($input['product_images'])) {
@@ -83,7 +85,9 @@ class AdminProductController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        $input['product_images'] = $this->storeImages($request, $product);
+        $resolved = $this->resolveProductImages($request, $product);
+        $input['product_images'] = $resolved['images'];
+        $input['product_image_labels'] = $resolved['labels'];
         $input['banner_image'] = $this->bannerImage($request, $product);
 
         $input = $this->normalizeConditionalFields($input);
@@ -143,7 +147,9 @@ class AdminProductController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $input['product_images'] = $this->storeImages($request, null);
+        $resolved = $this->resolveProductImages($request, null);
+        $input['product_images'] = $resolved['images'];
+        $input['product_image_labels'] = $resolved['labels'];
 
         if (empty($input['product_images'])) {
             return response()->json(['errors' => ['product_images' => ['At least one product image is required.']]], 422);
@@ -165,7 +171,9 @@ class AdminProductController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $input['product_images'] = $this->storeImages($request, $product);
+        $resolved = $this->resolveProductImages($request, $product);
+        $input['product_images'] = $resolved['images'];
+        $input['product_image_labels'] = $resolved['labels'];
         $input = $this->normalizeConditionalFields($input);
 
         $product->update($input);
@@ -247,6 +255,7 @@ class AdminProductController extends Controller
             $input['precautions'] = null;
         }
 
+        $input['sort_order'] = (int) ($input['sort_order'] ?? 0);
         $input['country_market'] = $this->toArray($input['country_market'] ?? '');
         $input['product_images'] = $input['product_images'] ?? [];
 
@@ -268,7 +277,7 @@ class AdminProductController extends Controller
         return array_values(array_filter(array_map('trim', explode(',', $value))));
     }
 
-    private function storeImages(Request $request, ?Product $product): array
+    private function resolveProductImages(Request $request, ?Product $product): array
     {
         $newImages = [];
 
@@ -288,7 +297,24 @@ class AdminProductController extends Controller
         }
 
         $existing = $product ? ($product->product_images ?? []) : [];
-        return array_values(array_unique(array_merge($newImages, $existing)));
+        $existingLabels = $product ? ($product->product_image_labels ?? []) : [];
+        $removed = array_map('intval', (array) $request->input('remove_images', []));
+
+        $keptImages = [];
+        $keptLabels = [];
+        foreach ($existing as $idx => $img) {
+            if (in_array($idx, $removed, true)) {
+                continue;
+            }
+            $keptImages[] = $img;
+            $keptLabels[] = trim((string) $request->input('image_labels.' . $idx, $existingLabels[$idx] ?? ''));
+        }
+
+        $images = array_values(array_unique(array_merge($newImages, $keptImages)));
+        $labels = array_merge(array_fill(0, count($newImages), ''), $keptLabels);
+        $labels = array_pad(array_slice($labels, 0, count($images)), count($images), '');
+
+        return ['images' => $images, 'labels' => $labels];
     }
 
     private function bannerImage(Request $request, ?Product $product): ?string
@@ -350,6 +376,7 @@ class AdminProductController extends Controller
             'dosage_form' => 'required|string|in:Tablet,Capsule,Injection,Oral liquid,Cream/ointment,Other',
             'strength' => ['required', 'string', 'max:50', 'regex:/^\d+\s*(mg|g|mcg|mL|IU|%)?$/i'],
             'pack_size_spec' => 'required|string|max:255',
+            'sort_order' => 'nullable|integer|min:0|max:9999',
             'route_admin' => 'nullable|string|in:Oral,Injection,Topical,Inhalation,Other',
             'manufacturer_id' => 'required|exists:manufacturers,id',
             'country_of_origin' => 'required|string|max:100',
@@ -381,6 +408,10 @@ class AdminProductController extends Controller
             'information_disclaimer' => 'required|string',
             'image_files' => $imageRequired . '|array',
             'image_files.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
+            'remove_images' => 'nullable|array',
+            'remove_images.*' => 'integer|min:0',
+            'image_labels' => 'nullable|array',
+            'image_labels.*' => 'nullable|string|max:100',
             'banner_image_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
             'banner_image_url' => 'nullable|url|max:255',
             'remove_banner_image' => 'nullable|boolean',
