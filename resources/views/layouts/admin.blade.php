@@ -41,6 +41,7 @@
                 <a href="{{ route('admin.pages') }}" class="block px-3 py-2 rounded hover:bg-navy-800 {{ request()->routeIs('admin.pages*') ? 'bg-med-600 text-white' : 'text-slate-200' }}">Pages</a>
                 <a href="{{ route('admin.headlines.index') }}" class="block px-3 py-2 rounded hover:bg-navy-800 {{ request()->routeIs('admin.headlines*') ? 'bg-med-600 text-white' : 'text-slate-200' }}">Headlines</a>
                 <a href="{{ route('admin.banners.index') }}" class="block px-3 py-2 rounded hover:bg-navy-800 {{ request()->routeIs('admin.banners*') ? 'bg-med-600 text-white' : 'text-slate-200' }}">Banners</a>
+                <a href="{{ route('admin.ticker.index') }}" class="block px-3 py-2 rounded hover:bg-navy-800 {{ request()->routeIs('admin.ticker*') ? 'bg-med-600 text-white' : 'text-slate-200' }}">Updates Ticker</a>
                 <a href="{{ route('admin.products.index') }}" class="block px-3 py-2 rounded hover:bg-navy-800 {{ request()->routeIs('admin.products*') ? 'bg-med-600 text-white' : 'text-slate-200' }}">Products</a>
                 <a href="{{ route('admin.categories.index') }}" class="block px-3 py-2 rounded hover:bg-navy-800 {{ request()->routeIs('admin.categories*') ? 'bg-med-600 text-white' : 'text-slate-200' }}">Categories</a>
                 <a href="{{ route('admin.enquiries') }}" class="block px-3 py-2 rounded hover:bg-navy-800 {{ request()->routeIs('admin.enquiries*') ? 'bg-med-600 text-white' : 'text-slate-200' }}">Enquiries</a>

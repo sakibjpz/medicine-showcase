@@ -172,12 +172,21 @@
 
     {{-- Updates ticker (under the logo row; visible on all screens) --}}
     @php
-        $tickerItems = [
-            ['title' => 'Beacon Pharmaceuticals product list updated — view the latest generics', 'url' => route('manufacturers'), 'color' => 'text-navy-800'],
-            ['title' => 'New oncology additions: Osimertinib, Sotorasib and more now listed', 'url' => route('products'), 'color' => 'text-med-700'],
-            ['title' => 'Professional enquiries are now answered within 24 hours', 'url' => route('professional-enquiry'), 'color' => 'text-rose-600'],
-            ['title' => 'Read the latest Articles & Updates from the MedSource team', 'url' => route('articles-updates'), 'color' => 'text-amber-600'],
-        ];
+        $tickerRows = \App\Models\TickerItem::active()->orderBy('sort_order')->orderBy('id')->get();
+        if ($tickerRows->isNotEmpty()) {
+            $tickerItems = $tickerRows->map(fn ($t) => [
+                'title' => $t->title,
+                'url' => $t->url ?: '#',
+                'color' => $t->color,
+            ])->all();
+        } else {
+            $tickerItems = [
+                ['title' => 'Beacon Pharmaceuticals product list updated — view the latest generics', 'url' => route('manufacturers'), 'color' => 'text-navy-800'],
+                ['title' => 'New oncology additions: Osimertinib, Sotorasib and more now listed', 'url' => route('products'), 'color' => 'text-med-700'],
+                ['title' => 'Professional enquiries are now answered within 24 hours', 'url' => route('professional-enquiry'), 'color' => 'text-rose-600'],
+                ['title' => 'Read the latest Articles & Updates from the MedSource team', 'url' => route('articles-updates'), 'color' => 'text-amber-600'],
+            ];
+        }
     @endphp
     <div class="bg-slate-50 border-b border-slate-200">
         <div class="container-site pb-1.5 flex items-center">

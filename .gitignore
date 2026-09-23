@@ -28,3 +28,4 @@ cookies*.txt
 
 # Windows reserved device name created by 2>nul redirects in Git Bash
 /nul
+config.zip

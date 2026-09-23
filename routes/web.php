@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminCategoryController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminHeadlineController;
 use App\Http\Controllers\AdminProductController;
+use App\Http\Controllers\AdminTickerController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -118,6 +119,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/banners/{banner}/edit', [AdminBannerController::class, 'edit'])->name('banners.edit');
     Route::match(['put', 'patch'], '/banners/{banner}', [AdminBannerController::class, 'update'])->name('banners.update');
     Route::delete('/banners/{banner}', [AdminBannerController::class, 'destroy'])->name('banners.destroy');
+
+    Route::get('/ticker', [AdminTickerController::class, 'index'])->name('ticker.index');
+    Route::get('/ticker/create', [AdminTickerController::class, 'create'])->name('ticker.create');
+    Route::post('/ticker', [AdminTickerController::class, 'store'])->name('ticker.store');
+    Route::get('/ticker/{ticker}/edit', [AdminTickerController::class, 'edit'])->name('ticker.edit');
+    Route::match(['put', 'patch'], '/ticker/{ticker}', [AdminTickerController::class, 'update'])->name('ticker.update');
+    Route::delete('/ticker/{ticker}', [AdminTickerController::class, 'destroy'])->name('ticker.destroy');
 
     Route::get('/categories', [AdminCategoryController::class, 'index'])->name('categories.index');
     Route::get('/categories/create', [AdminCategoryController::class, 'create'])->name('categories.create');
