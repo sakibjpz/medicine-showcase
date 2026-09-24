@@ -42,7 +42,7 @@
         }'
         class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 h-full items-stretch">
             {{-- All drug categories sidebar (desktop only; mobile uses the icon grid below) --}}
-            <div id="dbg-sidebar" class="hidden lg:flex order-2 lg:order-1 lg:col-span-3 lg:h-full flex-col">
+            <div class="hidden lg:flex order-2 lg:order-1 lg:col-span-3 lg:h-full flex-col">
                 <div class="relative bg-med-600 text-white rounded-xl shadow-lg lg:h-full flex flex-col overflow-hidden lg:overflow-visible"
                      @mouseleave="menuOpen = false">
                     <div class="px-4 py-3 bg-med-700 rounded-t-xl font-bold flex items-center gap-2 text-sm uppercase tracking-wide">
@@ -314,5 +314,3 @@
     </div>
 </section>
 @endsection
-
-<script src="/dbg.js"></script>
