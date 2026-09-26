@@ -197,8 +197,14 @@ function oldOr($product, $path, $default = '') {
             </div>
 
             <div>
-                <label for="approved_indication" class="block text-sm font-medium text-slate-700">Approved Indication <span class="text-red-500">*</span></label>
+                <label for="approved_indication" class="block text-sm font-medium text-slate-700">Indications <span class="text-red-500">*</span></label>
                 <textarea id="approved_indication" name="approved_indication" rows="5" class="mt-1 w-full rounded border-slate-300" required>{{ oldOr($product, 'approved_indication') }}</textarea>
+            </div>
+
+            <div>
+                <label for="instructions_manual" class="block text-sm font-medium text-slate-700">Instructions Manual</label>
+                <textarea id="instructions_manual" name="instructions_manual" rows="5" class="mt-1 w-full rounded border-slate-300">{{ oldOr($product, 'instructions_manual') }}</textarea>
+                <p class="text-xs text-slate-500 mt-1">Optional — patient/product instructions shown in the product description.</p>
             </div>
 
             <div>
@@ -226,7 +232,7 @@ function oldOr($product, $path, $default = '') {
                             </div>
                         @endforeach
                     </div>
-                    <p class="text-xs text-slate-500 mt-2">Labels appear under the image on the product page (e.g. 250 ml, 500 ml). Tick "Remove" and save to delete an image.</p>
+                    <p class="text-xs text-slate-500 mt-2">Labels appear under the image and in the Specification list on the product page (e.g. 250 ml, 0.8mg*30/box). Tick "Remove" and save to delete an image.</p>
                 @endif
             </div>
 
@@ -259,12 +265,12 @@ function oldOr($product, $path, $default = '') {
         <h2 class="text-lg font-semibold text-navy-900 border-b border-slate-200 pb-2 mb-4">3. Use and Safety Information</h2>
         <div class="grid grid-cols-1 gap-6">
             <div id="dosage_admin_wrapper">
-                <label for="dosage_admin_text" class="block text-sm font-medium text-slate-700">Dosage Administration</label>
+                <label for="dosage_admin_text" class="block text-sm font-medium text-slate-700">Dosage &amp; Administration</label>
                 <textarea id="dosage_admin_text" name="dosage_admin_text" rows="5" class="mt-1 w-full rounded border-slate-300">{{ oldOr($product, 'dosage_admin_text') }}</textarea>
             </div>
 
             <div>
-                <label for="safety_info" class="block text-sm font-medium text-slate-700">Safety Info <span class="text-red-500">*</span></label>
+                <label for="safety_info" class="block text-sm font-medium text-slate-700">Side Effects <span class="text-red-500">*</span></label>
                 <textarea id="safety_info" name="safety_info" rows="5" class="mt-1 w-full rounded border-slate-300" required>{{ oldOr($product, 'safety_info') }}</textarea>
                 <p class="text-xs text-slate-500 mt-1">Warnings, contraindications and adverse reactions.</p>
             </div>

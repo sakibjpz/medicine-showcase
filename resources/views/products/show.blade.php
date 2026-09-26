@@ -63,6 +63,24 @@
                         @endforeach
                     </div>
                 @endif
+
+                @if ($images->count() > 1 && collect($imageLabels)->filter()->isNotEmpty())
+                    <div class="mt-4 pt-3 border-t border-slate-100">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Specification</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            @foreach ($images as $i => $img)
+                                <button type="button" @click="active = {{ $i }}"
+                                        :class="active === {{ $i }} ? 'border-med-500 ring-1 ring-med-500 bg-med-50' : 'border-slate-200 bg-white hover:border-med-300'"
+                                        class="flex items-center gap-2 rounded-lg border p-2 text-left transition focus:outline-none">
+                                    <span class="w-10 h-10 shrink-0 rounded bg-slate-50 border border-slate-100 overflow-hidden">
+                                        <img src="{{ $img }}" alt="" class="w-full h-full object-contain">
+                                    </span>
+                                    <span class="text-xs font-medium text-slate-700 break-words">{{ $imageLabels[$i] ?? ('Option ' . ($i + 1)) }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <div class="mt-6 space-y-3">
@@ -95,11 +113,6 @@
                             class="px-5 py-3.5 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap transition shrink-0">
                         Description
                     </button>
-                    <button type="button" role="tab" @click="tab = 'safety'"
-                            :class="tab === 'safety' ? 'border-med-600 text-med-700' : 'border-transparent text-slate-500 hover:text-med-700 hover:border-slate-300'"
-                            class="px-5 py-3.5 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap transition shrink-0">
-                        Use &amp; Safety
-                    </button>
                     <button type="button" role="tab" @click="tab = 'related'"
                             :class="tab === 'related' ? 'border-med-600 text-med-700' : 'border-transparent text-slate-500 hover:text-med-700 hover:border-slate-300'"
                             class="px-5 py-3.5 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap transition shrink-0">
@@ -127,54 +140,64 @@
 
             <article x-show="tab === 'description'" x-cloak>
                 <h2 class="text-xl font-semibold text-navy-900 border-b border-slate-200 pb-3 mb-4">Product Description</h2>
-                <div class="space-y-4 text-sm text-slate-700 break-words">
+                <div class="space-y-5 text-sm text-slate-700 break-words">
                     @if ($product->short_description)
                         <p>{{ $product->short_description }}</p>
                     @endif
                     @if ($product->full_description)
-                        <h3 class="text-base font-semibold text-slate-900">Full Description</h3>
                         <p>{{ $product->full_description }}</p>
                     @endif
-                    @if ($product->approved_indication)
-                        <h3 class="text-base font-semibold text-slate-900">Approved Indication</h3>
-                        <p>{{ $product->approved_indication }}</p>
+                    @if ($product->instructions_manual)
+                        <div>
+                            <h3 class="text-base font-semibold text-slate-900">Instructions Manual</h3>
+                            <p>{{ $product->instructions_manual }}</p>
+                        </div>
                     @endif
-                </div>
-            </article>
-
-            <article x-show="tab === 'safety'" x-cloak>
-                <h2 class="text-xl font-semibold text-navy-900 border-b border-slate-200 pb-3 mb-4">Use and Safety</h2>
-                <div class="space-y-4 text-sm text-slate-700">
+                    @if ($product->approved_indication)
+                        <div>
+                            <h3 class="text-base font-semibold text-slate-900">Indications</h3>
+                            <p>{{ $product->approved_indication }}</p>
+                        </div>
+                    @endif
                     @if ($product->dosage_admin_text)
                         <div>
-                            <h3 class="font-semibold text-slate-900">Dosage Administration</h3>
+                            <h3 class="text-base font-semibold text-slate-900">Dosage &amp; Administration</h3>
                             <p>{{ $product->dosage_admin_text }}</p>
                         </div>
                     @endif
                     @if ($product->safety_info)
                         <div>
-                            <h3 class="font-semibold text-slate-900">Safety Info</h3>
+                            <h3 class="text-base font-semibold text-slate-900">Side Effects</h3>
                             <p>{{ $product->safety_info }}</p>
-                        </div>
-                    @endif
-                    @if ($product->drug_interactions)
-                        <div>
-                            <h3 class="font-semibold text-slate-900">Drug Interactions</h3>
-                            <p>{{ $product->drug_interactions }}</p>
                         </div>
                     @endif
                     @if ($product->precautions)
                         <div>
-                            <h3 class="font-semibold text-slate-900">Precautions</h3>
+                            <h3 class="text-base font-semibold text-slate-900">Precautions</h3>
                             <p>{{ $product->precautions }}</p>
+                        </div>
+                    @endif
+                    @if ($product->drug_interactions)
+                        <div>
+                            <h3 class="text-base font-semibold text-slate-900">Drug Interactions</h3>
+                            <p>{{ $product->drug_interactions }}</p>
                         </div>
                     @endif
                     @if ($product->storage_conditions)
                         <div>
-                            <h3 class="font-semibold text-slate-900">Storage Conditions</h3>
+                            <h3 class="text-base font-semibold text-slate-900">Storage Conditions</h3>
                             <p>{{ $product->storage_conditions }}</p>
                         </div>
                     @endif
+                    <div>
+                        <h3 class="text-base font-semibold text-slate-900">Related Information</h3>
+                        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-2">
+                            <div><dt class="font-medium text-slate-500">Availability</dt><dd class="text-slate-800 break-words">{{ $product->availability_status ?: 'N/A' }}</dd></div>
+                            <div><dt class="font-medium text-slate-500">Country Market</dt><dd class="text-slate-800 break-words">{{ is_array($product->country_market) ? implode(', ', $product->country_market) : ($product->country_market ?: 'N/A') }}</dd></div>
+                            <div><dt class="font-medium text-slate-500">Official Source</dt><dd class="text-slate-800 break-words">@if ($product->official_source_url)<a href="{{ $product->official_source_url }}" target="_blank" class="text-med-600 hover:underline break-all">{{ $product->official_source_url }}</a>@else N/A @endif</dd></div>
+                            <div><dt class="font-medium text-slate-500">Last Verified</dt><dd class="text-slate-800 break-words">{{ $product->last_verified_date?->format('M j, Y') ?: 'N/A' }}</dd></div>
+                        </dl>
+                    </div>
                 </div>
             </article>
 

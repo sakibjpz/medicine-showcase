@@ -412,6 +412,7 @@ class AdminProductController extends Controller
             'short_description' => 'required|string',
             'full_description' => 'required|string',
             'approved_indication' => 'required|string',
+            'instructions_manual' => 'nullable|string',
             'image_alt_text' => 'required|string|max:255',
             'dosage_admin_text' => 'required_unless:legal_status,Unknown|nullable|string',
             'safety_info' => 'required|string',

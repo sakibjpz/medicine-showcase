@@ -31,6 +31,7 @@ class Product extends Model
         'short_description',
         'full_description',
         'approved_indication',
+        'instructions_manual',
         'product_images',
         'product_image_labels',
         'banner_image',
